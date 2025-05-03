@@ -1,6 +1,9 @@
-FROM python:alpine
+FROM python:3.13-alpine
 
 WORKDIR /app
+
+# Installer les dépendances de build pour psycopg2
+RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev
 
 # Installer les dépendances
 COPY requirements.txt .

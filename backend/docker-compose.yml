@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   api:
-    build: ./api
+    build: ./fastapi-api
     ports:
       - "8000:8000"
     environment:
@@ -13,7 +11,7 @@ services:
       - backend-network
 
   auth:
-    build: ./auth
+    build: ./symfony-auth
     ports:
       - "9000:9000"
     environment:
