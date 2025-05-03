@@ -2,6 +2,7 @@
 .env
 .env.dev
 
+
 # frontend
 
 # Logs
@@ -32,6 +33,7 @@ dist-ssr
 
 # backend
 
+# Symfony
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -41,3 +43,11 @@ dist-ssr
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+# Python
+**/__pycache__/
+
+
+# tests
+
+tests/
