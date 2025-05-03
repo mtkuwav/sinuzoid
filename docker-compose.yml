@@ -28,7 +28,7 @@ services:
   auth:
     build: ./backend/symfony-auth
     ports:
-      - "9000:9000"
+      - "9000:80"    # Exposer le port 80 du conteneur comme 9000 sur l'hôte
     volumes:
       - ./backend/symfony-auth:/var/www
     environment:
