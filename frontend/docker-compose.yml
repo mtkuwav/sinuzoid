@@ -2,7 +2,7 @@ services:
   frontend:
     build: .
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT}:80"
     environment:
-      - VITE_API_URL=https://api.votre-domaine.com
-      - VITE_AUTH_URL=https://auth.votre-domaine.com
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_AUTH_URL=${VITE_AUTH_URL}
