@@ -26,7 +26,7 @@ RUN composer install --no-interaction --optimize-autoloader || echo "Aucune dép
 RUN mkdir -p /var/www/public
 
 # Fichier de test simple pour vérifier que ça fonctionne
-RUN echo '<?php echo "Symfony AUTH service running!"; ?>' > /var/www/public/index.php
+# RUN echo '<?php echo "Symfony AUTH service running!"; ?>' > /var/www/public/index.php
 
 # Configuration Nginx pour Symfony - NOTEZ LE PORT 80 AU LIEU DE 9000
 RUN echo 'server {\n\

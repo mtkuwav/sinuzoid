@@ -3,6 +3,8 @@ services:
     build: ./fastapi-api
     ports:
       - "${API_PORT}:8000"
+    volumes:
+      - ./fastapi-api:/app
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
@@ -14,6 +16,8 @@ services:
     build: ./symfony-auth
     ports:
       - "${AUTH_PORT}:80"
+    volumes:
+      - ./symfony-auth:/var/www
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
