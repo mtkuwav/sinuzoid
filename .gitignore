@@ -1,6 +1,7 @@
 # environement variables
 .env
 .env.dev
+.env.local
 
 
 # frontend

@@ -2,9 +2,9 @@ services:
   api:
     build: ./fastapi-api
     ports:
-      - "8000:8000"
+      - "${API_PORT}:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/sinuzoid
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - db
     networks:
@@ -13,9 +13,9 @@ services:
   auth:
     build: ./symfony-auth
     ports:
-      - "9000:80"
+      - "${AUTH_PORT}:80"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/sinuzoid
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - db
     networks:
@@ -24,7 +24,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:80"
+      - "${NGINX_PORT}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./symfony-auth:/var/www
@@ -36,10 +36,11 @@ services:
   db:
     image: postgres:15
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=sinuzoid
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -48,10 +49,10 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     ports:
-      - "8081:80"
+      - "${PGADMIN_PORT}:80"
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@example.com
-      - PGADMIN_DEFAULT_PASSWORD=adminpassword
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
       - db
     networks:
