@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=https://api.votre-domaine.com
+      - VITE_AUTH_URL=https://auth.votre-domaine.com
