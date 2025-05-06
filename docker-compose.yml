@@ -75,6 +75,8 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin # Stocks pgadmin config done directly in it
     depends_on:
       - db
     networks:
@@ -85,3 +87,18 @@ networks:
 
 volumes:
   postgres_data:
+  pgadmin_data:
+
+# Note: PostgreSQL server must be configured manually 
+#       for the first time in PgAdmin interface.
+#
+#       Please ensure that the following credentials are
+#       the same in your .env file.
+#
+# Here is an example with the values in .env.example :
+#
+# Host: db
+# Port: 5432
+# Database: sinuzoid_db
+# Username: postgres
+# Password: password
