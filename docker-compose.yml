@@ -1,0 +1,104 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+      - auth
+    networks:
+      - app-network
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_AUTH_URL=${VITE_AUTH_URL}
+
+  api:
+    build: ./backend/fastapi-api
+    ports:
+      - "${API_PORT}:8000"
+    volumes:
+      - ./backend/fastapi-api:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  auth:
+    build: ./backend/symfony-auth
+    ports:
+      - "${AUTH_PORT}:80"
+    volumes:
+      - ./backend/symfony-auth:/var/www
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - APP_SECRET=${APP_SECRET}
+      - APP_ENV=${APP_ENV}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./backend/symfony-auth:/var/www
+    depends_on:
+      - auth
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "${PGADMIN_PORT}:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin # Stocks pgadmin config done directly in it
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+# Note: PostgreSQL server must be configured manually 
+#       for the first time in PgAdmin interface.
+#
+#       Please ensure that the following credentials are
+#       the same in your .env file.
+#
+# Here is an example with the values in .env.example :
+#
+# Host: db
+# Port: 5432
+# Database: sinuzoid_db
+# Username: postgres
+# Password: password
