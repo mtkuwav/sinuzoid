@@ -2,6 +2,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 #root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Garde le contenu principal centré si nécessaire */
+.main-content {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;

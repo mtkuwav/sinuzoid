@@ -29,7 +29,7 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-8 border-t border-gray-200 dark:border-gray-800">
+    <footer className="left-0 right-0 w-full bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-8 border-t border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and brief description */}
