@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiBell, FiMenu } from 'react-icons/fi';
 import { IoMdMusicalNote } from 'react-icons/io';
-// import { useLocation } from 'react-router';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   // const location = useLocation();
@@ -22,7 +25,8 @@ const Header: React.FC = () => {
   }, []);
 
   const isActive = (path: string): boolean => {
-    return location.pathname === path;
+    // Temporaire jusqu'à ce que React Router soit implémenté
+    return window.location.pathname === path;
   };
 
   const navLinks = [
@@ -68,22 +72,22 @@ const Header: React.FC = () => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
-            <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
+            {/* Menu button - visible sur tous les écrans */}
+            <button 
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" 
+              onClick={onMenuClick}
+            >
+              <FiMenu className="h-5 w-5" />
+            </button>
+            
+            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiSearch className="h-5 w-5" />
             </button>
-            <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
+            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiBell className="h-5 w-5" />
             </button>
-            <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
+            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiUser className="h-5 w-5" />
-            </button>
-
-            {/* Mobile menu button */}
-            <button 
-              className="md:hidden text-gray-600 dark:text-gray-300" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <FiMenu className="h-6 w-6" />
             </button>
           </div>
         </div>
