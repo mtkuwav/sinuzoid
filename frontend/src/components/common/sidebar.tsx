@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router';
 import { 
   FiHome, 
   FiCompass, 
@@ -22,19 +23,24 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ 
   isOpen = false,
-  onClose,
-  className = "" 
+  onClose
 }) => {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     playlists: true,
     recentlyAdded: false
   });
+  
+  const location = useLocation();
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  const isActive = (path: string): boolean => {
+    return location.pathname === path;
   };
 
   const mainNavItems = [
@@ -110,13 +116,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             <ul>
               {mainNavItems.map((item) => (
                 <li key={item.path} className="mb-1">
-                  <a 
-                    href={item.path}
-                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  <Link 
+                    to={item.path}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
                   >
                     <span className="mr-3">{item.icon}</span>
                     <span>{item.name}</span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -130,13 +140,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             <ul>
               {libraryItems.map((item) => (
                 <li key={item.path} className="mb-1">
-                  <a 
-                    href={item.path}
-                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  <Link 
+                    to={item.path}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
                   >
                     <span className="mr-3">{item.icon}</span>
                     <span>{item.name}</span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -158,24 +172,28 @@ const Sidebar: React.FC<SidebarProps> = ({
             
             {expandedSections.playlists && (
               <>
-                <a 
-                  href="/playlists/create"
+                <Link 
+                  to="/playlists/create"
                   className="flex items-center px-3 py-2 mb-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <FiPlus className="mr-3" />
                   <span>Nouvelle playlist</span>
-                </a>
+                </Link>
                 
                 <ul className="max-h-60 overflow-y-auto scrollbar-thin">
                   {playlists.map((playlist, index) => (
                     <li key={index} className="mb-1">
-                      <a 
-                        href={playlist.path}
-                        className="flex items-center px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      <Link 
+                        to={playlist.path}
+                        className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
+                          isActive(playlist.path)
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                        }`}
                       >
                         <FiList className="mr-3" />
                         <span className="truncate">{playlist.name}</span>
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -187,9 +205,5 @@ const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
-
-/*TODO:
-- fix sidebar layout on mobile
-- fix sidebar height to match footer  */
 
 export default Sidebar;
