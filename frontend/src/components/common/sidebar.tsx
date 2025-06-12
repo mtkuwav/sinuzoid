@@ -13,7 +13,6 @@ import {
   FiBell,
   FiUser
 } from 'react-icons/fi';
-import { IoMdMusicalNote } from 'react-icons/io';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -22,7 +21,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
-  isOpen = false,  // Changement ici - défaut à false pour correspondre à l'état initial dans App.tsx
+  isOpen = false,
   onClose,
   className = "" 
 }) => {
@@ -59,18 +58,22 @@ const Sidebar: React.FC<SidebarProps> = ({
     { name: 'Pour méditer', path: '/playlist/meditation' }
   ];
 
-  // Remplace la logique des classes conditionnelles
+  // Adaptative CSS class depending on the context (mobile or desktop)
   const sidebarClasses = `
-    fixed left-0 top-16 bottom-auto z-40
+    top-16 z-40 overflow-y-auto
     bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
-    transition-all duration-300 overflow-y-auto w-64
-    max-h-[calc(100vh-16rem)]
-    ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    transition-all duration-300
+    md:fixed md:left-0 md:bottom-0 md:w-64
+    md:max-h-[calc(100vh-4rem)] md:block
+    ${isOpen 
+      ? 'fixed left-0 bottom-0 w-64 max-h-[calc(100vh-4rem)]' 
+      : 'hidden'
+    }
   `;
 
   return (
     <>
-      {/* Overlay pour mobile, visible uniquement si la sidebar est ouverte */}
+      {/* Overlay uniquement pour mobile */}
       {isOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -80,28 +83,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       
       <aside className={sidebarClasses}>
         <div className="p-4">
-          {/* Logo mobile - visible uniquement sur petit écran */}
-          <div className="flex items-center mb-6 lg:hidden">
-            <IoMdMusicalNote className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-            <span className="ml-2 text-lg font-semibold text-gray-800 dark:text-white">Sinuzoid</span>
-          </div>
-
-          {/* Navigation principale */}
-          <nav className="mb-6">
-            <ul>
-              {mainNavItems.map((item) => (
-                <li key={item.path} className="mb-1">
-                  <a 
-                    href={item.path}
-                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    <span className="mr-3">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
 
           {/* Actions rapides - Surtout utile sur mobile */}
           <div className="mb-6 md:hidden">
@@ -123,6 +104,23 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Navigation principale */}
+          <nav className="mb-6">
+            <ul>
+              {mainNavItems.map((item) => (
+                <li key={item.path} className="mb-1">
+                  <a 
+                    href={item.path}
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    <span>{item.name}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           {/* Ma Bibliothèque */}
           <div className="mb-6">
@@ -191,7 +189,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 /*TODO:
-- fix sidebar not opening on desktop
 - fix sidebar layout on mobile
 - fix sidebar height to match footer  */
 

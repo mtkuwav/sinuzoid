@@ -8,7 +8,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen] = useState<boolean>(false);
   // const location = useLocation();
 
   useEffect(() => {
@@ -72,20 +72,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
-            {/* Menu button - visible sur tous les écrans */}
+            {/* Menu button - visible uniquement sur mobile */}
             <button 
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" 
+              className="md:hidden text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" 
               onClick={onMenuClick}
             >
               <FiMenu className="h-5 w-5" />
             </button>
             
+            {/* Icône de recherche - visible uniquement sur desktop */}
             <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiSearch className="h-5 w-5" />
             </button>
+            
             <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiBell className="h-5 w-5" />
             </button>
+            
             <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
               <FiUser className="h-5 w-5" />
             </button>

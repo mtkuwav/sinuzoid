@@ -24,8 +24,8 @@ function App() {
       <div className="flex flex-grow pt-16">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
-        {/* Contenu principal qui s'adapte à la sidebar */}
-        <main className={`flex-grow transition-all duration-300 ${sidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+        {/* Contenu principal avec marge fixe sur desktop */}
+        <main className="flex-grow transition-all duration-300 md:ml-64">
           <div className="container mx-auto px-4 py-8">
             <div>
               <a href="https://vite.dev" target="_blank">
@@ -52,7 +52,10 @@ function App() {
         </main>
       </div>
       
-      <Footer />
+      {/* Footer avec marge fixe sur desktop correspondant à la sidebar */}
+      <div className="md:ml-64 transition-all duration-300">
+        <Footer />
+      </div>
     </div>
   )
 }
