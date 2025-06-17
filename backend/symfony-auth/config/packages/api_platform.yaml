@@ -1,7 +1,15 @@
 api_platform:
-    title: Hello API Platform
-    version: 1.0.0
+    title: 'Sinuzoid API'
+    description: 'Users gestion API'
+    version: '1.0.0'
     defaults:
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
+    formats:
+        json: ['application/json']
+    docs_formats:
+        json: ['application/json']
+        html: ['text/html']
+    enable_docs: true
+    enable_entrypoint: true
