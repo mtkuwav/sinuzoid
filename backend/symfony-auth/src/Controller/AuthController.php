@@ -111,7 +111,7 @@ class AuthController extends AbstractController
         $user = new User();
         $user->setUsername($data['username']);
         $user->setEmail($data['email']);
-        $user->setRole($data['role'] ?? 'user');
+        $user->setRole('user');
         
         // Hash du mot de passe
         $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
@@ -178,7 +178,6 @@ class AuthController extends AbstractController
                 'role' => $user->getRole(),
                 'createdAt' => $user->getCreatedAt(),
                 'lastLogin' => $user->getLastLogin(),
-                'storageQuota' => $user->getStorageQuota(),
             ]
         ]);
     }
