@@ -168,68 +168,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Get total storage used by user (sum of all track file sizes)
-     */
-    public function getTotalStorageUsed(User $user): int
-    {
-        $result = $this->createQueryBuilder('u')
-            ->select('SUM(t.fileSize)')
-            ->leftJoin('u.tracks', 't')
-            ->andWhere('u.id = :userId')
-            ->setParameter('userId', $user->getId())
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return (int) ($result ?? 0);
-    }
-
-    /**
-     * Get user statistics (tracks count, playlists count, etc.)
-     */
-    public function getUserStats(User $user): array
-    {
-        $qb = $this->createQueryBuilder('u')
-            ->select([
-                'COUNT(DISTINCT t.id) as tracksCount',
-                'COUNT(DISTINCT p.id) as playlistsCount',
-                'COUNT(DISTINCT s.id) as statisticsCount',
-                'SUM(t.fileSize) as totalStorageUsed'
-            ])
-            ->leftJoin('u.tracks', 't')
-            ->leftJoin('u.playlists', 'p')
-            ->leftJoin('u.statistics', 's')
-            ->andWhere('u.id = :userId')
-            ->setParameter('userId', $user->getId())
-            ->groupBy('u.id');
-
-        $result = $qb->getQuery()->getOneOrNullResult();
-
-        return [
-            'tracksCount' => (int) ($result['tracksCount'] ?? 0),
-            'playlistsCount' => (int) ($result['playlistsCount'] ?? 0),
-            'statisticsCount' => (int) ($result['statisticsCount'] ?? 0),
-            'totalStorageUsed' => (int) ($result['totalStorageUsed'] ?? 0),
-            'storageQuota' => $user->getStorageQuota(),
-            'storageUsagePercent' => $user->getStorageQuota() > 0 ? 
-                round(((int) ($result['totalStorageUsed'] ?? 0) / $user->getStorageQuota()) * 100, 2) : 0
-        ];
-    }
-
-    /**
-     * Find users exceeding their storage quota
-     */
-    public function findUsersExceedingQuota(): array
-    {
-        return $this->createQueryBuilder('u')
-            ->select('u')
-            ->leftJoin('u.tracks', 't')
-            ->groupBy('u.id')
-            ->having('SUM(t.fileSize) > u.storageQuota')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
      * Search users by username or email (for admin panel)
      */
     public function searchUsers(string $searchTerm, int $limit = 20): array

@@ -10,8 +10,6 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Patch;
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -60,7 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read', 'track:read', 'playlist:read', 'statistic:read'])]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50, unique: true)]
@@ -88,30 +86,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:detail'])]
     private ?\DateTimeImmutable $lastLogin = null;
 
-    #[ORM\Column(name: 'storage_quota', type: Types::BIGINT, options: ['default' => 1073741824])]
-    #[Groups(['user:read', 'user:write', 'user:detail'])]
-    #[Assert\PositiveOrZero]
-    private ?int $storageQuota = 1073741824; // 1 Go par défaut
-
     #[ORM\Column(length: 20, options: ['default' => 'user'])]
     #[Groups(['user:read', 'user:write'])]
     #[Assert\Choice(choices: ['user', 'admin'])]
     private string $role = 'user';
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Track::class, orphanRemoval: true)]
-    private Collection $tracks;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Playlist::class, orphanRemoval: true)]
-    private Collection $playlists;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Statistic::class, orphanRemoval: true)]
-    private Collection $statistics;
-
     public function __construct()
     {
-        $this->tracks = new ArrayCollection();
-        $this->playlists = new ArrayCollection();
-        $this->statistics = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -212,98 +193,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastLogin(?\DateTimeImmutable $lastLogin): static
     {
         $this->lastLogin = $lastLogin;
-        return $this;
-    }
-
-    public function getStorageQuota(): ?int
-    {
-        return $this->storageQuota;
-    }
-
-    public function setStorageQuota(int $storageQuota): static
-    {
-        $this->storageQuota = $storageQuota;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Track>
-     */
-    public function getTracks(): Collection
-    {
-        return $this->tracks;
-    }
-
-    public function addTrack(Track $track): static
-    {
-        if (!$this->tracks->contains($track)) {
-            $this->tracks->add($track);
-            $track->setUser($this);
-        }
-        return $this;
-    }
-
-    public function removeTrack(Track $track): static
-    {
-        if ($this->tracks->removeElement($track)) {
-            if ($track->getUser() === $this) {
-                $track->setUser(null);
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Playlist>
-     */
-    public function getPlaylists(): Collection
-    {
-        return $this->playlists;
-    }
-
-    public function addPlaylist(Playlist $playlist): static
-    {
-        if (!$this->playlists->contains($playlist)) {
-            $this->playlists->add($playlist);
-            $playlist->setUser($this);
-        }
-        return $this;
-    }
-
-    public function removePlaylist(Playlist $playlist): static
-    {
-        if ($this->playlists->removeElement($playlist)) {
-            if ($playlist->getUser() === $this) {
-                $playlist->setUser(null);
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Statistic>
-     */
-    public function getStatistics(): Collection
-    {
-        return $this->statistics;
-    }
-
-    public function addStatistic(Statistic $statistic): static
-    {
-        if (!$this->statistics->contains($statistic)) {
-            $this->statistics->add($statistic);
-            $statistic->setUser($this);
-        }
-        return $this;
-    }
-
-    public function removeStatistic(Statistic $statistic): static
-    {
-        if ($this->statistics->removeElement($statistic)) {
-            if ($statistic->getUser() === $this) {
-                $statistic->setUser(null);
-            }
-        }
         return $this;
     }
 
