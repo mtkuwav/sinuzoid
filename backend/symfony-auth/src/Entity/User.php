@@ -4,11 +4,6 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Patch;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,35 +18,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'UNIQ_EMAIL', fields: ['email'])]
 #[ApiResource(
     operations: [
-        new GetCollection(
-            normalizationContext: ['groups' => ['user:read']],
-            security: "is_granted('ROLE_ADMIN')"
-        ),
         new Get(
-            normalizationContext: ['groups' => ['user:read', 'user:detail']],
-            security: "is_granted('ROLE_ADMIN') or object == user"
-        ),
-        new Post(
             normalizationContext: ['groups' => ['user:read']],
-            denormalizationContext: ['groups' => ['user:write']],
-            security: "true"
-        ),
-        new Put(
-            normalizationContext: ['groups' => ['user:read']],
-            denormalizationContext: ['groups' => ['user:write']],
             security: "is_granted('ROLE_ADMIN') or object == user"
-        ),
-        new Patch(
-            normalizationContext: ['groups' => ['user:read']],
-            denormalizationContext: ['groups' => ['user:write']],
-            security: "is_granted('ROLE_ADMIN') or object == user"
-        ),
-        new Delete(
-            security: "is_granted('ROLE_ADMIN')"
         )
     ],
-    normalizationContext: ['groups' => ['user:read']],
-    denormalizationContext: ['groups' => ['user:write']]
+    normalizationContext: ['groups' => ['user:read']]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
