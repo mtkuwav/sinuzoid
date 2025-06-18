@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from fastapi.responses import FileResponse, StreamingResponse
 from app.services.storage_service import StorageService
+from app.dependencies.auth import get_current_user
 import logging
 import mimetypes
 from pathlib import Path
@@ -10,19 +11,20 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
 
-# TESTING ONLY, STATIC USER ID
-TEST_USER_ID = "test_user_123"
-
 @router.post("/upload/audio")
-async def upload_audio(file: UploadFile = File(...)):
+async def upload_audio(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
     """Audio file upload"""
     try:
-        logger.info(f"Audio upload started: {file.filename}, size: {file.size}, type: {file.content_type}")
+        user_id = str(current_user["id"])
+        logger.info(f"Audio upload started by user {user_id}: {file.filename}, size: {file.size}, type: {file.content_type}")
         
         storage = StorageService()
-        result = await storage.save_audio_file(file, TEST_USER_ID)
+        result = await storage.save_audio_file(file, user_id)
         
-        logger.info(f"Audio upload successful: {result['filename']}")
+        logger.info(f"Audio upload successful for user {user_id}: {result['filename']}")
         return {
             "message": "Audio file successfully uploaded",
             "data": result
@@ -35,15 +37,19 @@ async def upload_audio(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Internal server error during audio upload")
 
 @router.post("/upload/cover")
-async def upload_cover(file: UploadFile = File(...)):
+async def upload_cover(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
     """Cover picture upload with automatic thumbnails generation"""
     try:
-        logger.info(f"Cover upload started: {file.filename}, size: {file.size}, type: {file.content_type}")
+        user_id = str(current_user["id"])
+        logger.info(f"Cover upload started by user {user_id}: {file.filename}, size: {file.size}, type: {file.content_type}")
         
         storage = StorageService()
-        result = await storage.save_cover_file(file, TEST_USER_ID)
+        result = await storage.save_cover_file(file, user_id)
         
-        logger.info(f"Cover upload successful: {result['filename']}")
+        logger.info(f"Cover upload successful for user {user_id}: {result['filename']}")
         return {
             "message": "Cover picture successfully uploaded",
             "data": result
@@ -56,9 +62,20 @@ async def upload_cover(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Internal server error during cover upload")
 
 @router.get("/audio/{filename}")
-async def get_audio_file(filename: str, request: Request):
+async def get_audio_file(
+    filename: str, 
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
     """Downloads or streams an audio file with range support"""
     try:
+        user_id = str(current_user["id"])
+        
+        # Verify file ownership
+        if not _verify_file_ownership(filename, user_id):
+            logger.warning(f"User {user_id} attempted to access unauthorized audio file: {filename}")
+            raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
+        
         storage = StorageService()
         file_path = storage.get_file_path(filename, "audio")
         
@@ -141,9 +158,16 @@ async def _serve_audio_range(file_path: Path, range_header: str, mime_type: str)
         raise HTTPException(status_code=500, detail="Error streaming audio file")
 
 @router.get("/cover/{filename}")
-async def get_cover_file(filename: str):
+async def get_cover_file(
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
     """Downloads a cover picture with proper MIME type detection"""
     try:
+        user_id = str(current_user["id"])
+        if not _verify_file_ownership(filename, user_id):
+            logger.warning(f"User {user_id} attempted to access unauthorized cover file: {filename}")
+            raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
         storage = StorageService()
         file_path = storage.get_file_path(filename, "cover")
         
@@ -154,8 +178,7 @@ async def get_cover_file(filename: str):
         # Detect proper MIME type
         mime_type, _ = mimetypes.guess_type(str(file_path))
         if not mime_type or not mime_type.startswith('image'):
-            mime_type = 'image/jpeg'  # Default fallback
-        
+            mime_type = 'image/jpeg'
         logger.info(f"Cover file served: {filename}")
         return FileResponse(
             path=file_path,
@@ -170,8 +193,13 @@ async def get_cover_file(filename: str):
         raise HTTPException(status_code=500, detail="Error serving cover file")
 
 @router.get("/cover/{filename}/thumbnail/{size}")
-async def get_thumbnail(filename: str, size: str):
-    """Downloads a thumbnail picture"""
+async def get_thumbnail(
+    filename: str, size: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = str(current_user["id"])
+    if not _verify_file_ownership(filename, user_id):
+        raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
     storage = StorageService()
     
     if size not in storage.THUMBNAIL_SIZES:
@@ -192,8 +220,13 @@ async def get_thumbnail(filename: str, size: str):
     )
 
 @router.get("/cover/{filename}/thumbnails")
-async def get_available_thumbnails(filename: str):
-    """Lists all availible thumbnails for a cover"""
+async def get_available_thumbnails(
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = str(current_user["id"])
+    if not _verify_file_ownership(filename, user_id):
+        raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
     storage = StorageService()
     thumbnails = storage.get_all_thumbnails(filename)
     
@@ -206,11 +239,17 @@ async def get_available_thumbnails(filename: str):
     }
 
 @router.delete("/audio/{filename}")
-async def delete_audio_file(filename: str):
+async def delete_audio_file(
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
     """Deletes an audio file"""
     try:
-        logger.info(f"Audio deletion started: {filename}")
-        
+        user_id = str(current_user["id"])
+        if not _verify_file_ownership(filename, user_id):
+            logger.warning(f"User {user_id} attempted to delete unauthorized audio file: {filename}")
+            raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
+        logger.info(f"Audio deletion started by user {user_id}: {filename}")
         storage = StorageService()
         deleted = storage.delete_file(filename, "audio")
         
@@ -228,11 +267,18 @@ async def delete_audio_file(filename: str):
         raise HTTPException(status_code=500, detail="Error deleting audio file")
 
 @router.delete("/cover/{filename}")
-async def delete_cover_file(filename: str, include_thumbnails: bool = True):
+async def delete_cover_file(
+    filename: str, 
+    include_thumbnails: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
     """Deletes a cover image and its thumbnails"""
     try:
-        logger.info(f"Cover deletion started: {filename} (thumbnails: {include_thumbnails})")
-        
+        user_id = str(current_user["id"])
+        if not _verify_file_ownership(filename, user_id):
+            logger.warning(f"User {user_id} attempted to delete unauthorized cover file: {filename}")
+            raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
+        logger.info(f"Cover deletion started by user {user_id}: {filename} (thumbnails: {include_thumbnails})")
         storage = StorageService()
         deleted = storage.delete_file(filename, "cover", include_thumbnails)
         
@@ -246,9 +292,13 @@ async def delete_cover_file(filename: str, include_thumbnails: bool = True):
         
         logger.info(f"Cover file deleted successfully: {filename}")
         return {"message": message}
-        
+    
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error deleting cover file {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error deleting cover file")
+
+def _verify_file_ownership(filename: str, user_id: str) -> bool:
+    """Check if the file belongs to the current user (by filename prefix)"""
+    return filename.startswith(f"{user_id}_") or f"_{user_id}_" in filename

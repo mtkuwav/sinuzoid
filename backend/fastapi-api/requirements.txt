@@ -7,3 +7,4 @@ pydantic>=2.3.0
 aiofiles>=23.1.0
 Pillow>=10.0.0
 mutagen>=1.47.0
+httpx >= 0.24.1
