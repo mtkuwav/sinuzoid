@@ -21,8 +21,12 @@ services:
       - "${API_PORT}:8000"
     volumes:
       - ./backend/fastapi-api:/app
+      - audio_storage:/storage/audio
+      - cover_storage:/storage/cover
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - STORAGE_PATH=${STORAGE_PATH}
     depends_on:
       - db
     networks:
@@ -88,6 +92,8 @@ networks:
 volumes:
   postgres_data:
   pgadmin_data:
+  audio_storage:
+  cover_storage:
 
 # Note: PostgreSQL server must be configured manually 
 #       for the first time in PgAdmin interface.
