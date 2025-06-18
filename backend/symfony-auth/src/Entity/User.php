@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'UNIQ_USERNAME', fields: ['username'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_EMAIL', fields: ['email'])]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(
@@ -58,6 +59,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:detail'])]
     private ?\DateTimeImmutable $lastLogin = null;
 
+    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[Groups(['user:read', 'user:detail'])]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     #[ORM\Column(length: 20, options: ['default' => 'user'])]
     #[Groups(['user:read', 'user:write'])]
     #[Assert\Choice(choices: ['user', 'admin'])]
@@ -66,6 +71,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -168,11 +174,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

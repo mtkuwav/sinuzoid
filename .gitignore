@@ -52,5 +52,8 @@ dist-ssr
 # tests
 tests/
 
-sinuzoid_db2.sql
+
+# other
+
+db_backups/
 .github/
