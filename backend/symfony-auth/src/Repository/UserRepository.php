@@ -206,4 +206,33 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Find users updated between dates
+     */
+    public function findUpdatedBetween(\DateTimeInterface $start, \DateTimeInterface $end): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.updatedAt BETWEEN :start AND :end')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->orderBy('u.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find recently updated users (within X days)
+     */
+    public function findRecentlyUpdated(int $days = 7): array
+    {
+        $cutoffDate = new \DateTimeImmutable('-' . $days . ' days');
+        
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.updatedAt >= :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
+            ->orderBy('u.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
