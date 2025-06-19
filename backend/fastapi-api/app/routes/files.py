@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
-from app.services.storage_service import StorageService
+from app.services.storage import StorageService
 from app.services.track_service import TrackService
 from app.dependencies.auth import get_current_user
 from app.database import get_db
