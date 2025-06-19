@@ -3,9 +3,10 @@ from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from app.services.storage import StorageService
 from app.services.track_service import TrackService
+from app.services.storage_quota_service import StorageQuotaService
 from app.dependencies.auth import get_current_user
 from app.database import get_db
-from app.schemas.schemas import TrackCreate, TrackResponse
+from app.schemas.schemas import TrackCreate, TrackResponse, StorageInfoResponse
 from datetime import timedelta
 from typing import List
 import logging
@@ -28,6 +29,31 @@ async def upload_audio(
     try:
         user_id = current_user["id"]
         logger.info(f"Audio upload started by user {user_id}: {file.filename}, size: {file.size}, type: {file.content_type}")
+        
+        # Step 0: Check storage quota before processing
+        file_size = file.size or 0
+        quota_check = StorageQuotaService.check_upload_allowed(db, user_id, file_size)
+        
+        if not quota_check["allowed"]:
+            reason = quota_check.get("reason", "unknown")
+            message = quota_check.get("message", "Upload not allowed")
+            
+            if reason == "insufficient_space":
+                storage_info = quota_check.get("storage_info", {})
+                available = storage_info.get("available", 0)
+                available_formatted = StorageQuotaService.format_bytes(available)
+                file_size_formatted = StorageQuotaService.format_bytes(file_size)
+                
+                logger.warning(f"Upload denied for user {user_id}: insufficient space. File: {file_size_formatted}, Available: {available_formatted}")
+                raise HTTPException(
+                    status_code=413, 
+                    detail=f"Insufficient storage space. File size: {file_size_formatted}, Available: {available_formatted}"
+                )
+            else:
+                logger.error(f"Upload denied for user {user_id}: {message}")
+                raise HTTPException(status_code=400, detail=message)
+        
+        logger.info(f"Quota check passed for user {user_id}. File size: {StorageQuotaService.format_bytes(file_size)}")
         
         # Step 1: Save physical file
         storage = StorageService()
@@ -496,6 +522,35 @@ async def get_track_by_id(
     except Exception as e:
         logger.error(f"Error retrieving track {track_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving track")
+
+@router.get("/storage", response_model=StorageInfoResponse)
+async def get_storage_info(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get storage quota and usage information for the current user"""
+    try:
+        user_id = current_user["id"]
+        
+        storage_info = StorageQuotaService.get_user_storage_info(db, user_id)
+        
+        # Format the response with human-readable sizes
+        response = StorageInfoResponse(
+            quota=storage_info["quota"],
+            used=storage_info["used"],
+            available=storage_info["available"],
+            usage_percentage=storage_info["usage_percentage"],
+            quota_formatted=StorageQuotaService.format_bytes(storage_info["quota"]),
+            used_formatted=StorageQuotaService.format_bytes(storage_info["used"]),
+            available_formatted=StorageQuotaService.format_bytes(storage_info["available"])
+        )
+        
+        logger.info(f"Storage info retrieved for user {user_id}: {storage_info['usage_percentage']:.1f}% used")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error retrieving storage info for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving storage information")
 
 @router.get("/tracks/{track_id}/cover")
 async def get_track_cover(

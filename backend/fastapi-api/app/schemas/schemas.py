@@ -84,3 +84,20 @@ class StatisticsResponse(BaseModel):
     total_listen_time: timedelta
     skip_count: int
     complete_plays: int
+
+class StorageInfoResponse(BaseModel):
+    """Response model for storage quota information"""
+    quota: int
+    used: int
+    available: int
+    usage_percentage: float
+    quota_formatted: str
+    used_formatted: str
+    available_formatted: str
+
+class QuotaCheckResponse(BaseModel):
+    """Response model for quota check operations"""
+    allowed: bool
+    reason: Optional[str] = None
+    message: Optional[str] = None
+    storage_info: Optional[StorageInfoResponse] = None
