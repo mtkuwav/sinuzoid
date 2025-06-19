@@ -47,7 +47,6 @@ class Track(Base):
     duration = Column(INTERVAL, nullable=False)
     upload_date = Column(DateTime(timezone=False), server_default=func.current_timestamp(), nullable=False)
     last_accessed = Column(DateTime(timezone=False))
-    is_public = Column(Boolean, default=False, nullable=False)
     cover_path = Column(String(512))
     cover_thumbnail_path = Column(String(512))
     updated_at = Column(DateTime(timezone=False), server_default=func.current_timestamp(), onupdate=func.current_timestamp(), nullable=False)
