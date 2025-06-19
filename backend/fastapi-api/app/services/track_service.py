@@ -138,3 +138,14 @@ class TrackService:
                 
         except Exception as e:
             logger.error(f"Error updating last accessed for track {track_id}: {str(e)}")
+
+    @staticmethod
+    def get_user_total_storage(db: Session, user_id: int) -> int:
+        """Get total storage used by a user in bytes"""
+        try:
+            total_size = db.query(func.sum(Track.file_size)).filter(Track.user_id == user_id).scalar()
+            return total_size or 0
+            
+        except Exception as e:
+            logger.error(f"Error calculating total storage for user {user_id}: {str(e)}")
+            return 0
