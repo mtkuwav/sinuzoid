@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from app.services.playlist_service import PlaylistService
 from app.dependencies.auth import get_current_user
 from app.database import get_db
-from app.schemas.schemas import PlaylistCreate, PlaylistResponse
+from app.schemas.schemas import PlaylistCreate, PlaylistResponse, PlaylistSearchParams, PlaylistSearchResult
 from typing import List
 from uuid import UUID
 import logging
@@ -54,6 +54,59 @@ async def get_user_playlists(
     except Exception as e:
         logger.error(f"Error retrieving playlists: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving playlists")
+
+
+@router.get("/search", response_model=PlaylistSearchResult)
+async def search_playlists(
+    query: str = Query(..., min_length=1, description="Search query"),
+    search_in_tracks: bool = Query(False, description="Include track names in search"),
+    search_in_description: bool = Query(True, description="Include descriptions in search"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum results"),
+    offset: int = Query(0, ge=0, description="Results offset"),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search playlists by name, description and optionally track names"""
+    try:
+        user_id = current_user["id"]
+        
+        playlists, total = PlaylistService.search_playlists(
+            db, user_id, query, search_in_tracks, search_in_description, limit, offset
+        )
+        
+        logger.info(f"Search '{query}' returned {total} results for user {user_id}")
+        
+        return PlaylistSearchResult(
+            playlists=playlists,
+            total_results=total,
+            search_query=query,
+            search_in_tracks=search_in_tracks,
+            search_in_description=search_in_description
+        )
+        
+    except Exception as e:
+        logger.error(f"Error during playlist search: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error during search")
+
+
+@router.get("/suggestions")
+async def get_playlist_suggestions(
+    query: str = Query(..., min_length=2, description="Partial playlist name"),
+    limit: int = Query(5, ge=1, le=10),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get playlist name suggestions for autocomplete"""
+    try:
+        user_id = current_user["id"]
+        
+        suggestions = PlaylistService.get_playlist_suggestions(db, user_id, query, limit)
+        
+        return {"suggestions": suggestions}
+        
+    except Exception as e:
+        logger.error(f"Error getting playlist suggestions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting suggestions")
 
 
 @router.get("/{playlist_id}", response_model=PlaylistResponse)
@@ -266,3 +319,37 @@ async def reorder_playlist_tracks(
     except Exception as e:
         logger.error(f"Error reordering playlist tracks: {str(e)}")
         raise HTTPException(status_code=500, detail="Error reordering playlist tracks")
+
+
+@router.get("/{playlist_id}/tracks/search")
+async def search_tracks_in_playlist(
+    playlist_id: str,
+    query: str = Query(..., min_length=1, description="Search query for tracks"),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search tracks within a specific playlist"""
+    try:
+        user_id = current_user["id"]
+        playlist_uuid = UUID(playlist_id)
+        
+        tracks, total = PlaylistService.search_tracks_in_playlist(
+            db, playlist_uuid, user_id, query, limit, offset
+        )
+        
+        logger.info(f"Track search in playlist {playlist_id} returned {total} results")
+        
+        return {
+            "tracks": tracks,
+            "total_results": total,
+            "search_query": query,
+            "playlist_id": playlist_id
+        }
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid playlist ID format")
+    except Exception as e:
+        logger.error(f"Error searching tracks in playlist: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error searching tracks in playlist")

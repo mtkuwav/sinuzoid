@@ -101,3 +101,19 @@ class QuotaCheckResponse(BaseModel):
     reason: Optional[str] = None
     message: Optional[str] = None
     storage_info: Optional[StorageInfoResponse] = None
+
+class PlaylistSearchParams(BaseModel):
+    """Parameters for playlist search"""
+    query: Optional[str] = None
+    search_in_tracks: bool = False
+    search_in_description: bool = True
+    limit: int = 50
+    offset: int = 0
+
+class PlaylistSearchResult(BaseModel):
+    """Search result for playlists"""
+    playlists: List[PlaylistResponse]
+    total_results: int
+    search_query: str
+    search_in_tracks: bool
+    search_in_description: bool
