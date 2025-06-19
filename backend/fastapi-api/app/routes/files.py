@@ -1,34 +1,95 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from fastapi.responses import FileResponse, StreamingResponse
+from sqlalchemy.orm import Session
 from app.services.storage_service import StorageService
+from app.services.track_service import TrackService
 from app.dependencies.auth import get_current_user
+from app.database import get_db
+from app.schemas.schemas import TrackCreate, TrackResponse
+from datetime import timedelta
+from typing import List
 import logging
 import mimetypes
 from pathlib import Path
+from typing import List
 
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
 
-@router.post("/upload/audio")
+@router.post("/upload/audio", response_model=TrackResponse)
 async def upload_audio(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Audio file upload"""
+    """Audio file upload with automatic database recording"""
     try:
-        user_id = str(current_user["id"])
+        user_id = current_user["id"]
         logger.info(f"Audio upload started by user {user_id}: {file.filename}, size: {file.size}, type: {file.content_type}")
         
+        # Step 1: Save physical file
         storage = StorageService()
-        result = await storage.save_audio_file(file, user_id)
+        file_result = await storage.save_audio_file(file, str(user_id))
         
-        logger.info(f"Audio upload successful for user {user_id}: {result['filename']}")
-        return {
-            "message": "Audio file successfully uploaded",
-            "data": result
-        }
+        # Step 2: Extract metadata, duration and cover info
+        file_path = file_result.get('path')
+        metadata = file_result.get('metadata', {})
+        embedded_cover = file_result.get('embedded_cover')
+        
+        # Convert duration from seconds to timedelta
+        duration_seconds = metadata.get('duration', 0)
+        duration = timedelta(seconds=duration_seconds) if duration_seconds else timedelta(0)
+        
+        # Extract file extension from filename
+        file_extension = Path(file.filename).suffix.lower().lstrip('.')
+        
+        # Extract cover paths if available
+        cover_path = None
+        cover_thumbnail_path = None
+        
+        if embedded_cover:
+            cover_path = embedded_cover.get('path')
+            # Get the first available thumbnail (prefer medium, then large, then small)
+            thumbnails = embedded_cover.get('thumbnails', {})
+            if 'medium' in thumbnails:
+                cover_thumbnail_path = thumbnails['medium']['path']
+            elif 'large' in thumbnails:
+                cover_thumbnail_path = thumbnails['large']['path']
+            elif 'small' in thumbnails:
+                cover_thumbnail_path = thumbnails['small']['path']
+        
+        # Step 3: Create track record in database
+        track_data = TrackCreate(
+            original_filename=file.filename,
+            file_path=file_path,
+            file_size=file.size or 0,
+            file_type=file_extension,
+            duration=duration,
+            is_public=False,
+            cover_path=cover_path,
+            cover_thumbnail_path=cover_thumbnail_path
+        )
+        
+        # Create track in database
+        db_track = TrackService.create_track(
+            db=db,
+            track_data=track_data,
+            user_id=user_id
+        )
+        
+        # Step 4: Save metadata if available
+        if metadata:
+            TrackService.save_metadata(
+                db=db,
+                track_id=db_track.id,
+                metadata=metadata
+            )
+        
+        logger.info(f"Audio upload and database recording successful for user {user_id}: track {db_track.id}")
+        
+        return db_track
         
     except HTTPException:
         raise
@@ -65,16 +126,22 @@ async def upload_cover(
 async def get_audio_file(
     filename: str, 
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Downloads or streams an audio file with range support"""
     try:
-        user_id = str(current_user["id"])
+        user_id = current_user["id"]
         
-        # Verify file ownership
-        if not _verify_file_ownership(filename, user_id):
+        # Verify file ownership using database
+        if not _verify_file_ownership(filename, str(user_id), db):
             logger.warning(f"User {user_id} attempted to access unauthorized audio file: {filename}")
             raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
+        
+        # Update last accessed timestamp
+        track = TrackService.get_track_by_filename(db, filename, user_id)
+        if track:
+            TrackService.update_last_accessed(db, track.id)
         
         storage = StorageService()
         file_path = storage.get_file_path(filename, "audio")
@@ -241,15 +308,27 @@ async def get_available_thumbnails(
 @router.delete("/audio/{filename}")
 async def delete_audio_file(
     filename: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Deletes an audio file"""
+    """Deletes an audio file and its database record"""
     try:
-        user_id = str(current_user["id"])
-        if not _verify_file_ownership(filename, user_id):
+        user_id = current_user["id"]
+        
+        # Verify file ownership using database
+        if not _verify_file_ownership(filename, str(user_id), db):
             logger.warning(f"User {user_id} attempted to delete unauthorized audio file: {filename}")
             raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
+        
         logger.info(f"Audio deletion started by user {user_id}: {filename}")
+        
+        # Step 1: Get track record from database
+        track = TrackService.get_track_by_filename(db, filename, user_id)
+        if not track:
+            logger.warning(f"Track record not found in database for file: {filename}")
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        # Step 2: Delete physical file
         storage = StorageService()
         deleted = storage.delete_file(filename, "audio")
         
@@ -257,8 +336,11 @@ async def delete_audio_file(
             logger.warning(f"Audio file not found for deletion: {filename}")
             raise HTTPException(status_code=404, detail="Audio file not found")
         
-        logger.info(f"Audio file deleted successfully: {filename}")
-        return {"message": "Audio file successfully deleted"}
+        # Step 3: Delete database record (this will cascade to metadata)
+        TrackService.delete_track(db, track.id, user_id)
+        
+        logger.info(f"Audio file and database record deleted successfully: {filename}")
+        return {"message": "Audio file and database record successfully deleted"}
         
     except HTTPException:
         raise
@@ -299,6 +381,123 @@ async def delete_cover_file(
         logger.error(f"Error deleting cover file {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error deleting cover file")
 
-def _verify_file_ownership(filename: str, user_id: str) -> bool:
-    """Check if the file belongs to the current user (by filename prefix)"""
+@router.get("/tracks", response_model=List[TrackResponse])
+async def get_user_tracks(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all tracks for the current user"""
+    try:
+        user_id = current_user["id"]
+        tracks = TrackService.get_user_tracks(db, user_id, skip, limit)
+        
+        logger.info(f"Retrieved {len(tracks)} tracks for user {user_id}")
+        return tracks
+        
+    except Exception as e:
+        logger.error(f"Error retrieving tracks for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving tracks")
+
+@router.get("/tracks/{track_id}", response_model=TrackResponse)
+async def get_track_by_id(
+    track_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a specific track by ID"""
+    try:
+        user_id = current_user["id"]
+        
+        # Convert string ID to UUID
+        from uuid import UUID
+        track_uuid = UUID(track_id)
+        
+        track = TrackService.get_track_by_id(db, track_uuid, user_id)
+        
+        if not track:
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        logger.info(f"Retrieved track {track_id} for user {user_id}")
+        return track
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid track ID format")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving track {track_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving track")
+
+@router.get("/tracks/{track_id}/cover")
+async def get_track_cover(
+    track_id: str,
+    size: str = "original",  # original, small, medium, large
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get cover image for a track"""
+    try:
+        user_id = current_user["id"]
+        
+        # Convert string ID to UUID
+        from uuid import UUID
+        track_uuid = UUID(track_id)
+        
+        track = TrackService.get_track_by_id(db, track_uuid, user_id)
+        
+        if not track:
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        # Determine which cover path to use
+        cover_path = None
+        if size == "original" and track.cover_path:
+            cover_path = Path(track.cover_path)
+        elif size != "original" and track.cover_thumbnail_path:
+            # Use the stored thumbnail path directly or construct it based on size
+            if size == "medium" and "medium" in track.cover_thumbnail_path:
+                cover_path = Path(track.cover_thumbnail_path)
+            else:
+                # Construct path for other sizes
+                base_path = Path(track.cover_thumbnail_path)
+                cover_dir = base_path.parent
+                filename_parts = base_path.stem.split('_')
+                # Replace the size part
+                new_filename = f"{'_'.join(filename_parts[:-1])}_{size}.webp"
+                cover_path = cover_dir / new_filename
+        
+        if not cover_path or not cover_path.exists():
+            raise HTTPException(status_code=404, detail="Cover image not found")
+        
+        # Determine MIME type
+        if size == "original":
+            mime_type = "image/jpeg"
+        else:
+            mime_type = "image/webp"
+        
+        return FileResponse(
+            path=cover_path,
+            media_type=mime_type,
+            filename=cover_path.name
+        )
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid track ID format")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving cover for track {track_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving cover")
+
+def _verify_file_ownership(filename: str, user_id: str, db: Session = None) -> bool:
+    """Check if the file belongs to the current user using database if available, fallback to filename"""
+    if db is not None:
+        try:
+            track = TrackService.get_track_by_filename(db, filename, int(user_id))
+            return track is not None
+        except Exception:
+            pass
+    
+    # Fallback to filename-based check for compatibility (covers, etc.)
     return filename.startswith(f"{user_id}_") or f"_{user_id}_" in filename

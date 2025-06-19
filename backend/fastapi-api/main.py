@@ -1,6 +1,7 @@
 import logging
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes import files
 
 # Configure logging
@@ -14,6 +15,15 @@ logging.basicConfig(
 )
 
 app = FastAPI(title="Sinuzoid API")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(files.router)
