@@ -348,9 +348,22 @@ class StorageService:
             
             metadata = {}
             
-            # Duration
-            if hasattr(audio_file, 'info') and hasattr(audio_file.info, 'length'):
-                metadata['duration'] = audio_file.info.length
+            duration = None
+            if hasattr(audio_file, 'info'):
+                info = audio_file.info
+                if hasattr(info, 'length') and info.length:
+                    duration = info.length
+                elif hasattr(info, 'duration') and info.duration:
+                    duration = info.duration
+                elif hasattr(info, 'total_samples') and hasattr(info, 'sample_rate'):
+                    if info.total_samples and info.sample_rate:
+                        duration = float(info.total_samples) / float(info.sample_rate)
+            
+            if duration:
+                metadata['duration'] = duration
+            else:
+                logger.warning(f"Could not extract duration from {file_path}")
+                metadata['duration'] = 0
             
             # Common tags with multiple possible names
             tag_mapping = {
@@ -367,13 +380,17 @@ class StorageService:
             if hasattr(audio_file, 'tags') and audio_file.tags:
                 for key, possible_tags in tag_mapping.items():
                     for tag in possible_tags:
-                        if tag in audio_file.tags:
-                            value = audio_file.tags[tag]
-                            if isinstance(value, list) and len(value) > 0:
-                                metadata[key] = str(value[0])
-                            elif value:
-                                metadata[key] = str(value)
-                            break
+                        try:
+                            if tag in audio_file.tags:
+                                value = audio_file.tags[tag]
+                                if isinstance(value, list) and len(value) > 0:
+                                    metadata[key] = str(value[0])
+                                elif value:
+                                    metadata[key] = str(value)
+                                break
+                        except (ValueError, KeyError, TypeError):
+                            # Some formats don't support certain tag names
+                            continue
             
             # Audio format specific info
             if hasattr(audio_file, 'info'):
@@ -393,5 +410,8 @@ class StorageService:
             return metadata
             
         except Exception as e:
-            logger.warning(f"Failed to extract metadata from {file_path}: {str(e)}")
+            logger.error(f"Failed to extract metadata from {file_path}: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return {}
