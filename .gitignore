@@ -47,6 +47,7 @@ dist-ssr
 
 # Python
 **/__pycache__/
+.venv/
 
 
 # tests
