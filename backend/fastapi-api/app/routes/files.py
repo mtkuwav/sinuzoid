@@ -348,6 +348,74 @@ async def delete_audio_file(
         logger.error(f"Error deleting audio file {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error deleting audio file")
 
+@router.delete("/tracks/all")
+async def delete_all_user_tracks(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete all tracks for the current user (both database records and files)"""
+    try:
+        user_id = current_user["id"]
+        logger.info(f"Started deleting all tracks for user {user_id}")
+        
+        # Step 1: Get all tracks for the user
+        tracks = TrackService.get_user_tracks(db, user_id, skip=0, limit=10000)  # Get all tracks
+        
+        if not tracks:
+            logger.info(f"No tracks found for user {user_id}")
+            return {"message": "No tracks found to delete", "deleted_count": 0}
+        
+        storage = StorageService()
+        failed_deletions = []
+        successful_deletions = 0
+        
+        # Step 2: Delete physical files for each track
+        for track in tracks:
+            try:
+                # Extract filename from file_path
+                filename = Path(track.file_path).name
+                
+                # Delete the audio file and related covers/thumbnails
+                file_deleted = storage.delete_file(filename, "audio", include_thumbnails=True)
+                
+                if file_deleted:
+                    successful_deletions += 1
+                    logger.info(f"Successfully deleted file: {filename}")
+                else:
+                    failed_deletions.append(filename)
+                    logger.warning(f"Failed to delete file: {filename}")
+                    
+            except Exception as e:
+                failed_deletions.append(f"{track.file_path} (error: {str(e)})")
+                logger.error(f"Error deleting file {track.file_path}: {str(e)}")
+        
+        # Step 3: Delete all database records (this will cascade to metadata and statistics)
+        deleted_db_count = TrackService.delete_all_user_tracks(db, user_id)
+        
+        message = f"Successfully deleted {deleted_db_count} track records from database"
+        if successful_deletions > 0:
+            message += f" and {successful_deletions} files from storage"
+        
+        if failed_deletions:
+            message += f". Failed to delete {len(failed_deletions)} files: {', '.join(failed_deletions)}"
+            logger.warning(f"Some files could not be deleted for user {user_id}: {failed_deletions}")
+        
+        logger.info(f"Completed deletion process for user {user_id}: {deleted_db_count} DB records, {successful_deletions} files")
+        
+        return {
+            "message": message,
+            "deleted_count": deleted_db_count,
+            "files_deleted": successful_deletions,
+            "files_failed": len(failed_deletions),
+            "failed_files": failed_deletions if failed_deletions else []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting all tracks for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error deleting all tracks")
+
 @router.delete("/cover/{filename}")
 async def delete_cover_file(
     filename: str, 

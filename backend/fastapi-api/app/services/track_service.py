@@ -80,6 +80,30 @@ class TrackService:
             raise
 
     @staticmethod
+    def delete_all_user_tracks(db: Session, user_id: int) -> int:
+        """Delete all tracks for a user and return the number of deleted tracks"""
+        try:
+            # Get all tracks for the user
+            tracks = db.query(Track).filter(Track.user_id == user_id).all()
+            track_count = len(tracks)
+            
+            if track_count == 0:
+                logger.info(f"No tracks found for user {user_id}")
+                return 0
+            
+            # Delete all tracks (this will cascade to metadata and statistics)
+            deleted_count = db.query(Track).filter(Track.user_id == user_id).delete()
+            db.commit()
+            
+            logger.info(f"All tracks deleted from database for user {user_id}: {deleted_count} tracks")
+            return deleted_count
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error deleting all tracks for user {user_id}: {str(e)}")
+            raise
+
+    @staticmethod
     def save_metadata(db: Session, track_id: UUID, metadata: dict) -> None:
         """Save track metadata"""
         try:
