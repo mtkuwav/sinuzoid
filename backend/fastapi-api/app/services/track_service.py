@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
+from sqlalchemy import and_, or_, func, Text
 from app.models.models import Track, Metadata, Statistics
 from app.schemas.schemas import TrackCreate, TrackResponse
 from typing import List, Optional
@@ -149,3 +149,82 @@ class TrackService:
         except Exception as e:
             logger.error(f"Error calculating total storage for user {user_id}: {str(e)}")
             return 0
+
+    @staticmethod
+    def search_tracks(db: Session, user_id: int, search_query: Optional[str] = None, 
+                     search_in_filename: bool = True, search_in_metadata: bool = True,
+                     file_type: Optional[str] = None, 
+                     # min_duration: Optional[int] = None,  # DISABLED: Duration filtering not implemented
+                     # max_duration: Optional[int] = None,  # DISABLED: Duration filtering not implemented
+                     offset: int = 0, limit: int = 50) -> dict:
+        """Search tracks for a user with various filters"""
+        try:
+            if offset < 0:
+                offset = 0
+            
+            query = db.query(Track).filter(Track.user_id == user_id)
+            
+            if search_query:
+                search_conditions = []
+                
+                if search_in_filename:
+                    search_conditions.append(Track.original_filename.ilike(f"%{search_query}%"))
+                
+                if search_in_metadata:
+                    metadata_track_ids = db.query(Metadata.track_id).filter(
+                        or_(
+                            Metadata.metadata_json.op('->>')('title').ilike(f"%{search_query}%"),
+                            Metadata.metadata_json.op('->>')('artist').ilike(f"%{search_query}%"),
+                            Metadata.metadata_json.op('->>')('album').ilike(f"%{search_query}%"),
+                            Metadata.metadata_json.op('->>')('genre').ilike(f"%{search_query}%"),
+                            Metadata.metadata_json.cast(Text).ilike(f"%{search_query}%")
+                        )
+                    ).subquery()
+                    
+                    search_conditions.append(Track.id.in_(
+                        db.query(metadata_track_ids.c.track_id)
+                    ))
+                
+                if search_conditions:
+                    if len(search_conditions) == 1:
+                        query = query.filter(search_conditions[0])
+                    else:
+                        query = query.filter(or_(*search_conditions))
+            
+            if file_type:
+                query = query.filter(Track.file_type.ilike(file_type))
+            
+            # Filter by duration - DISABLED: Duration filtering not implemented
+            # if min_duration is not None:
+            #     logger.warning("Duration filtering not yet implemented - skipping min_duration filter")
+            # 
+            # if max_duration is not None:
+            #     logger.warning("Duration filtering not yet implemented - skipping max_duration filter")
+            
+            # Get total count before pagination
+            total_count = query.count()
+            
+            # Apply pagination and get results
+            tracks = query.offset(offset).limit(limit).all()
+            
+            # Prepare filters info
+            filters_applied = {
+                "file_type": file_type,
+                # "min_duration": min_duration,  # DISABLED: Duration filtering not implemented
+                # "max_duration": max_duration,  # DISABLED: Duration filtering not implemented
+                "search_in_filename": search_in_filename,
+                "search_in_metadata": search_in_metadata
+            }
+            
+            logger.info(f"Search completed for user {user_id}: {total_count} results found")
+            
+            return {
+                "tracks": tracks,
+                "total_results": total_count,
+                "search_query": search_query,
+                "filters_applied": filters_applied
+            }
+            
+        except Exception as e:
+            logger.error(f"Error searching tracks for user {user_id}: {str(e)}")
+            raise

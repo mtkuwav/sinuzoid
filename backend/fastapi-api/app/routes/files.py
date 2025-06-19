@@ -6,7 +6,7 @@ from app.services.track_service import TrackService
 from app.services.storage_quota_service import StorageQuotaService
 from app.dependencies.auth import get_current_user
 from app.database import get_db
-from app.schemas.schemas import TrackCreate, TrackResponse, StorageInfoResponse
+from app.schemas.schemas import TrackCreate, TrackResponse, StorageInfoResponse, TrackSearchParams, TrackSearchResult
 from datetime import timedelta
 from typing import List
 import logging
@@ -18,6 +18,19 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
+
+def _verify_file_ownership(filename: str, user_id: int, db: Session = None) -> bool:
+    """Verify that a file belongs to the specified user"""
+    try:
+        if db is None:
+            return False
+        
+        # Check if the track exists for this user
+        track = TrackService.get_track_by_filename(db, filename, user_id)
+        return track is not None
+    except Exception as e:
+        logger.error(f"Error verifying file ownership: {str(e)}")
+        return False
 
 @router.post("/upload/audio", response_model=TrackResponse)
 async def upload_audio(
@@ -511,131 +524,70 @@ async def get_user_tracks(
         logger.error(f"Error retrieving tracks for user: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving tracks")
 
-@router.get("/tracks/{track_id}", response_model=TrackResponse)
-async def get_track_by_id(
-    track_id: str,
+@router.get("/tracks/search", response_model=TrackSearchResult)
+async def search_tracks(
+    query: str = None,
+    search_in_filename: bool = True,
+    search_in_metadata: bool = True,
+    file_type: str = None,
+    # min_duration: int = None,  # DISABLED: Duration filtering not implemented
+    # max_duration: int = None,  # DISABLED: Duration filtering not implemented
+    offset: int = 0,
+    limit: int = 50,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get a specific track by ID"""
+    """Search tracks for the current user"""
     try:
         user_id = current_user["id"]
         
-        # Convert string ID to UUID
-        from uuid import UUID
-        track_uuid = UUID(track_id)
+        # Validate limit
+        if limit > 100:
+            limit = 100
         
-        track = TrackService.get_track_by_id(db, track_uuid, user_id)
+        # Validate offset
+        if offset < 0:
+            offset = 0
         
-        if not track:
-            raise HTTPException(status_code=404, detail="Track not found")
+        # Validate file_type if provided
+        if file_type:
+            allowed_types = ["mp3", "wav", "flac", "ogg", "aac"]
+            if file_type.lower() not in allowed_types:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+                )
         
-        logger.info(f"Retrieved track {track_id} for user {user_id}")
-        return track
+        # Validate duration constraints - DISABLED: Duration filtering not implemented
+        # if min_duration is not None and min_duration < 0:
+        #     raise HTTPException(status_code=400, detail="Minimum duration cannot be negative")
+        # 
+        # if max_duration is not None and max_duration < 0:
+        #     raise HTTPException(status_code=400, detail="Maximum duration cannot be negative")
+        # 
+        # if min_duration is not None and max_duration is not None and min_duration > max_duration:
+        #     raise HTTPException(status_code=400, detail="Minimum duration cannot be greater than maximum duration")
         
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid track ID format")
+        # Search tracks
+        search_result = TrackService.search_tracks(
+            db=db,
+            user_id=user_id,
+            search_query=query,
+            search_in_filename=search_in_filename,
+            search_in_metadata=search_in_metadata,
+            file_type=file_type,
+            # min_duration=min_duration,  # DISABLED: Duration filtering not implemented
+            # max_duration=max_duration,  # DISABLED: Duration filtering not implemented
+            offset=offset,
+            limit=limit
+        )
+        
+        logger.info(f"Search completed for user {user_id}: query='{query}', results={search_result['total_results']}")
+        
+        return TrackSearchResult(**search_result)
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving track {track_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving track")
-
-@router.get("/storage", response_model=StorageInfoResponse)
-async def get_storage_info(
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get storage quota and usage information for the current user"""
-    try:
-        user_id = current_user["id"]
-        
-        storage_info = StorageQuotaService.get_user_storage_info(db, user_id)
-        
-        # Format the response with human-readable sizes
-        response = StorageInfoResponse(
-            quota=storage_info["quota"],
-            used=storage_info["used"],
-            available=storage_info["available"],
-            usage_percentage=storage_info["usage_percentage"],
-            quota_formatted=StorageQuotaService.format_bytes(storage_info["quota"]),
-            used_formatted=StorageQuotaService.format_bytes(storage_info["used"]),
-            available_formatted=StorageQuotaService.format_bytes(storage_info["available"])
-        )
-        
-        logger.info(f"Storage info retrieved for user {user_id}: {storage_info['usage_percentage']:.1f}% used")
-        return response
-        
-    except Exception as e:
-        logger.error(f"Error retrieving storage info for user: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving storage information")
-
-@router.get("/tracks/{track_id}/cover")
-async def get_track_cover(
-    track_id: str,
-    size: str = "original",  # original, small, medium, large
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get cover image for a track"""
-    try:
-        user_id = current_user["id"]
-        
-        # Convert string ID to UUID
-        from uuid import UUID
-        track_uuid = UUID(track_id)
-        
-        track = TrackService.get_track_by_id(db, track_uuid, user_id)
-        
-        if not track:
-            raise HTTPException(status_code=404, detail="Track not found")
-        
-        # Determine which cover path to use
-        cover_path = None
-        if size == "original" and track.cover_path:
-            cover_path = Path(track.cover_path)
-        elif size != "original" and track.cover_thumbnail_path:
-            if size == "medium" and "medium" in track.cover_thumbnail_path:
-                cover_path = Path(track.cover_thumbnail_path)
-            else:
-                base_path = Path(track.cover_thumbnail_path)
-                cover_dir = base_path.parent
-                filename_parts = base_path.stem.split('_')
-                # Replace the size part
-                new_filename = f"{'_'.join(filename_parts[:-1])}_{size}.webp"
-                cover_path = cover_dir / new_filename
-        
-        if not cover_path or not cover_path.exists():
-            raise HTTPException(status_code=404, detail="Cover image not found")
-        
-        # Determine MIME type
-        if size == "original":
-            mime_type = "image/jpeg"
-        else:
-            mime_type = "image/webp"
-        
-        return FileResponse(
-            path=cover_path,
-            media_type=mime_type,
-            filename=cover_path.name
-        )
-        
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid track ID format")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error retrieving cover for track {track_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving cover")
-
-def _verify_file_ownership(filename: str, user_id: str, db: Session = None) -> bool:
-    """Check if the file belongs to the current user using database if available, fallback to filename"""
-    if db is not None:
-        try:
-            track = TrackService.get_track_by_filename(db, filename, int(user_id))
-            return track is not None
-        except Exception:
-            pass
-    
-    # Fallback to filename-based check for compatibility (covers, etc.)
-    return filename.startswith(f"{user_id}_") or f"_{user_id}_" in filename
+        logger.error(f"Error searching tracks for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error searching tracks")

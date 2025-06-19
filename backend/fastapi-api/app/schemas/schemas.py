@@ -117,3 +117,21 @@ class PlaylistSearchResult(BaseModel):
     search_query: str
     search_in_tracks: bool
     search_in_description: bool
+
+class TrackSearchParams(BaseModel):
+    """Parameters for track search"""
+    query: Optional[str] = None
+    search_in_filename: bool = True
+    search_in_metadata: bool = True
+    file_type: Optional[str] = None
+    # min_duration: Optional[int] = None  # in seconds - DISABLED: Duration filtering not implemented
+    # max_duration: Optional[int] = None  # in seconds - DISABLED: Duration filtering not implemented
+    limit: int = 50
+    offset: int = 0
+
+class TrackSearchResult(BaseModel):
+    """Search result for tracks"""
+    tracks: List[TrackResponse]
+    total_results: int
+    search_query: Optional[str]
+    filters_applied: dict
