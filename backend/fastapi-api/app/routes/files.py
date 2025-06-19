@@ -67,7 +67,6 @@ async def upload_audio(
             file_size=file.size or 0,
             file_type=file_extension,
             duration=duration,
-            is_public=False,
             cover_path=cover_path,
             cover_thumbnail_path=cover_thumbnail_path
         )

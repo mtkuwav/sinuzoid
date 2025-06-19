@@ -22,7 +22,6 @@ class UserResponse(UserBase):
 class TrackBase(BaseModel):
     original_filename: str
     file_type: str
-    is_public: bool = False
 
 class TrackCreate(TrackBase):
     file_path: str
