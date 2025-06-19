@@ -163,7 +163,7 @@ async def get_audio_file(
             logger.warning(f"User {user_id} attempted to access unauthorized audio file: {filename}")
             raise HTTPException(status_code=403, detail="Access denied: file does not belong to user")
         
-        # Update last accessed timestamp
+        # Update last accessed timestamp and get track info with metadata
         track = TrackService.get_track_by_filename(db, filename, user_id)
         if track:
             TrackService.update_last_accessed(db, track.id)
@@ -175,6 +175,27 @@ async def get_audio_file(
             logger.warning(f"Audio file not found: {filename}")
             raise HTTPException(status_code=404, detail="Audio file not found")
         
+        # Generate formatted filename for download
+        download_filename = filename  # Default fallback
+        if track:
+            try:
+                metadata = {}
+                if track.track_metadata and len(track.track_metadata) > 0:
+                    metadata = track.track_metadata[0].metadata_json or {}
+                
+                logger.info(f"Track metadata for {filename}: {metadata}")
+                logger.info(f"Original filename: {track.original_filename}")
+                
+                download_filename = storage.file_manager.generate_download_filename(
+                    track.original_filename, metadata
+                )
+                logger.info(f"Generated download filename: {download_filename} for file: {filename}")
+            except Exception as e:
+                logger.warning(f"Error generating download filename for {filename}: {str(e)}, using original")
+                download_filename = track.original_filename if track.original_filename else filename
+        else:
+            logger.warning(f"No track found for filename: {filename}, using filename as-is")
+        
         # Detect proper MIME type
         mime_type, _ = mimetypes.guess_type(str(file_path))
         if not mime_type or not mime_type.startswith('audio'):
@@ -184,15 +205,15 @@ async def get_audio_file(
         range_header = request.headers.get('range')
         
         if range_header:
-            # Range request for streaming
-            return await _serve_audio_range(file_path, range_header, mime_type)
+            # Range request for streaming (use original filename for streaming)
+            return await _serve_audio_range(file_path, range_header, mime_type, filename)
         else:
-            # Full file download
-            logger.info(f"Audio file served (full): {filename}")
+            # Full file download with formatted filename
+            logger.info(f"Audio file served (full): {filename} as {download_filename}")
             return FileResponse(
                 path=file_path,
                 media_type=mime_type,
-                filename=filename,
+                filename=download_filename,
                 headers={
                     "Accept-Ranges": "bytes",
                     "Content-Length": str(file_path.stat().st_size)
@@ -205,7 +226,7 @@ async def get_audio_file(
         logger.error(f"Error serving audio file {filename}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error serving audio file")
 
-async def _serve_audio_range(file_path: Path, range_header: str, mime_type: str):
+async def _serve_audio_range(file_path: Path, range_header: str, mime_type: str, filename: str):
     """Serves audio file with range support for streaming"""
     try:
         file_size = file_path.stat().st_size
@@ -383,7 +404,6 @@ async def delete_all_user_tracks(
         user_id = current_user["id"]
         logger.info(f"Started deleting all tracks for user {user_id}")
         
-        # Step 1: Get all tracks for the user
         tracks = TrackService.get_user_tracks(db, user_id, skip=0, limit=10000)  # Get all tracks
         
         if not tracks:
@@ -394,10 +414,8 @@ async def delete_all_user_tracks(
         failed_deletions = []
         successful_deletions = 0
         
-        # Step 2: Delete physical files for each track
         for track in tracks:
             try:
-                # Extract filename from file_path
                 filename = Path(track.file_path).name
                 
                 # Delete the audio file and related covers/thumbnails
@@ -414,7 +432,7 @@ async def delete_all_user_tracks(
                 failed_deletions.append(f"{track.file_path} (error: {str(e)})")
                 logger.error(f"Error deleting file {track.file_path}: {str(e)}")
         
-        # Step 3: Delete all database records (this will cascade to metadata and statistics)
+        # Delete all database records (will cascade to metadata and statistics)
         deleted_db_count = TrackService.delete_all_user_tracks(db, user_id)
         
         message = f"Successfully deleted {deleted_db_count} track records from database"
@@ -577,11 +595,9 @@ async def get_track_cover(
         if size == "original" and track.cover_path:
             cover_path = Path(track.cover_path)
         elif size != "original" and track.cover_thumbnail_path:
-            # Use the stored thumbnail path directly or construct it based on size
             if size == "medium" and "medium" in track.cover_thumbnail_path:
                 cover_path = Path(track.cover_thumbnail_path)
             else:
-                # Construct path for other sizes
                 base_path = Path(track.cover_thumbnail_path)
                 cover_dir = base_path.parent
                 filename_parts = base_path.stem.split('_')

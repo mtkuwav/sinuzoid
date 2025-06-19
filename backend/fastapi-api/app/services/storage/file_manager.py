@@ -1,5 +1,6 @@
 import uuid
 import logging
+import re
 from pathlib import Path
 from typing import Dict, Any, Optional
 import aiofiles
@@ -139,3 +140,60 @@ class FileManager:
         """Get file path if it exists"""
         file_path = self.audio_path / filename if file_type == "audio" else self.cover_path / filename
         return file_path if file_path.exists() else None
+    
+    def _sanitize_filename_part(self, text: str) -> str:
+        """Sanitize a text string for use in filenames"""
+        if not text:
+            return ""
+        
+        # Remove/replace problematic characters
+        sanitized = re.sub(r'[<>:"/\\|?*]', '_', str(text))
+        sanitized = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', sanitized)  # Remove control characters
+        sanitized = sanitized.strip('. ')  # Remove leading/trailing dots and spaces
+        
+        # Limit length
+        return sanitized[:100] if len(sanitized) > 100 else sanitized
+    
+    def generate_download_filename(self, original_filename: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Generate a formatted filename for download based on metadata"""
+        if not metadata:
+            return original_filename
+
+        file_extension = Path(original_filename).suffix
+        
+        artist = metadata.get('artist', '').strip()
+        title = metadata.get('title', '').strip()
+        album = metadata.get('album', '').strip()
+        
+        artist = self._sanitize_filename_part(artist)
+        title = self._sanitize_filename_part(title)
+        album = self._sanitize_filename_part(album)
+        
+        # Build filename based on available metadata
+        filename_parts = []
+        
+        if artist and title and album:
+            # Full format: Artist - Title - Album.ext
+            filename_parts = [artist, title, album]
+        elif artist and title:
+            # Partial format: Artist - Title.ext
+            filename_parts = [artist, title]
+        elif title:
+            # Title only: Title.ext
+            filename_parts = [title]
+        elif artist:
+            # Artist only: Artist.ext
+            filename_parts = [artist]
+        
+        if filename_parts:
+            # Join with " - " separator
+            formatted_name = " - ".join(filename_parts)
+            # Ensure total length doesn't exceed filesystem limits
+            max_name_length = 250 - len(file_extension)
+            if len(formatted_name) > max_name_length:
+                formatted_name = formatted_name[:max_name_length].rstrip(' -')
+            
+            return f"{formatted_name}{file_extension}"
+        else:
+            # Fallback to original filename if no usable metadata
+            return original_filename
