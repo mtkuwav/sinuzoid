@@ -186,13 +186,17 @@ class StorageService:
                     "thumbnails": thumbnails
                 }
 
+            # Extract audio metadata
+            metadata = self._extract_audio_metadata(file_path)
+
             return {
                 "filename": filename,
                 "original_filename": file.filename,
                 "path": str(file_path),
                 "size": len(content),
                 "content_type": file.content_type,
-                "embedded_cover": cover_info
+                "embedded_cover": cover_info,
+                "metadata": metadata
             }
         
         except HTTPException:
@@ -333,3 +337,61 @@ class StorageService:
                     "dimensions": self.THUMBNAIL_SIZES[size_name]
                 }
         return thumbnails
+
+#   TODO : custom metadata fields
+    def _extract_audio_metadata(self, file_path: Path) -> dict:
+        """Extract audio metadata from file"""
+        try:
+            audio_file = MutagenFile(file_path)
+            if not audio_file:
+                return {}
+            
+            metadata = {}
+            
+            # Duration
+            if hasattr(audio_file, 'info') and hasattr(audio_file.info, 'length'):
+                metadata['duration'] = audio_file.info.length
+            
+            # Common tags with multiple possible names
+            tag_mapping = {
+                'title': ['TIT2', 'TITLE', '\xa9nam'],
+                'artist': ['TPE1', 'ARTIST', '\xa9ART'],
+                'album': ['TALB', 'ALBUM', '\xa9alb'],
+                'date': ['TDRC', 'DATE', '\xa9day'],
+                'genre': ['TCON', 'GENRE', '\xa9gen'],
+                'albumartist': ['TPE2', 'ALBUMARTIST', 'aART'],
+                'track': ['TRCK', 'TRACKNUMBER', 'trkn'],
+                'disc': ['TPOS', 'DISCNUMBER', 'disk']
+            }
+            
+            if hasattr(audio_file, 'tags') and audio_file.tags:
+                for key, possible_tags in tag_mapping.items():
+                    for tag in possible_tags:
+                        if tag in audio_file.tags:
+                            value = audio_file.tags[tag]
+                            if isinstance(value, list) and len(value) > 0:
+                                metadata[key] = str(value[0])
+                            elif value:
+                                metadata[key] = str(value)
+                            break
+            
+            # Audio format specific info
+            if hasattr(audio_file, 'info'):
+                info = audio_file.info
+                if hasattr(info, 'bitrate'):
+                    metadata['bitrate'] = info.bitrate
+                if hasattr(info, 'sample_rate'):
+                    metadata['sample_rate'] = info.sample_rate
+                if hasattr(info, 'channels'):
+                    metadata['channels'] = info.channels
+                if hasattr(info, 'mode'):
+                    metadata['mode'] = str(info.mode)
+            
+            # File format
+            metadata['format'] = file_path.suffix.upper().lstrip('.')
+            
+            return metadata
+            
+        except Exception as e:
+            logger.warning(f"Failed to extract metadata from {file_path}: {str(e)}")
+            return {}
