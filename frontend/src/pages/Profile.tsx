@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiMail, FiShield, FiEdit3, FiLock } from 'react-icons/fi';
 import { Button, PasswordInput, Alert, Card } from '../components/ui';
+import { StorageInfo } from '../components/common';
 
 interface PasswordForm {
   currentPassword: string;
@@ -177,6 +178,11 @@ const Profile = () => {
                 value={user.role}
               />
             </div>
+          </div>
+
+          {/* Storage Information */}
+          <div className="mb-8">
+            <StorageInfo />
           </div>
 
           {/* Password Section */}
