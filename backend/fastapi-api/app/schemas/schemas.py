@@ -84,6 +84,81 @@ class StatisticsResponse(BaseModel):
     total_listen_time: timedelta
     skip_count: int
     complete_plays: int
+    created_at: datetime
+    updated_at: datetime
+
+class StatisticsCreate(BaseModel):
+    """Schema for creating new statistics entry"""
+    user_id: int
+    track_id: UUID
+    play_count: int = 0
+    user_rating: Optional[int] = None
+    total_listen_time: timedelta = timedelta(seconds=0)
+    skip_count: int = 0
+    complete_plays: int = 0
+
+class StatisticsUpdate(BaseModel):
+    """Schema for updating existing statistics"""
+    play_count: Optional[int] = None
+    user_rating: Optional[int] = None
+    total_listen_time: Optional[timedelta] = None
+    skip_count: Optional[int] = None
+    complete_plays: Optional[int] = None
+    last_played: Optional[datetime] = None
+
+class PlayEvent(BaseModel):
+    """Schema for recording a play event"""
+    track_id: UUID
+    listen_duration: timedelta  # How long the track was actually listened to
+    track_duration: timedelta   # Total duration of the track
+    completed: bool = False     # Whether the track was played to completion (>80% listened)
+    skipped: bool = False       # Whether the track was skipped
+
+class RatingUpdate(BaseModel):
+    """Schema for updating track rating"""
+    track_id: UUID
+    rating: int  # 1-5 stars
+
+class UserStatisticsSummary(BaseModel):
+    """Summary of user's listening statistics"""
+    user_id: int
+    total_tracks_listened: int
+    total_play_count: int
+    total_listen_time: timedelta
+    total_complete_plays: int
+    total_skips: int
+    average_rating: Optional[float] = None
+    favorite_tracks: List[TrackResponse] = []  # Top 5 most played tracks
+    recently_played: List[TrackResponse] = []  # Last 10 played tracks
+
+class TrackStatisticsSummary(BaseModel):
+    """Summary of track's listening statistics across all users"""
+    track_id: UUID
+    total_plays: int
+    total_listeners: int
+    total_listen_time: timedelta
+    total_complete_plays: int
+    total_skips: int
+    average_rating: Optional[float] = None
+    completion_rate: float  # Percentage of plays that were completed
+
+class StatisticsSearchParams(BaseModel):
+    """Parameters for statistics search/filtering"""
+    user_id: Optional[int] = None
+    track_id: Optional[UUID] = None
+    min_play_count: Optional[int] = None
+    min_rating: Optional[int] = None
+    max_rating: Optional[int] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+    limit: int = 50
+    offset: int = 0
+
+class StatisticsSearchResult(BaseModel):
+    """Search result for statistics"""
+    statistics: List[StatisticsResponse]
+    total_results: int
+    filters_applied: dict
 
 class StorageInfoResponse(BaseModel):
     """Response model for storage quota information"""

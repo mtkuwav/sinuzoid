@@ -2,7 +2,7 @@ import logging
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import files, playlists
+from app.routes import files, playlists, statistics
 
 # Configure logging
 logging.basicConfig(
@@ -28,6 +28,7 @@ app.add_middleware(
 # Include routers
 app.include_router(files.router)
 app.include_router(playlists.router)
+app.include_router(statistics.router)
 
 @app.get("/")
 async def root():
