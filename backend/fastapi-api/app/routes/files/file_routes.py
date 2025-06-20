@@ -272,14 +272,14 @@ async def get_track_metadata(
     
     return metadata
 
-@router.put("/tracks/{track_id}/metadata", response_model=dict)
+@router.patch("/tracks/{track_id}/metadata", response_model=dict)
 async def update_track_metadata(
     track_id: str,
     metadata_update: MetadataUpdate,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update metadata for a specific track"""
+    """Update metadata for a specific track (partial update)"""
     user_id = current_user["id"]
     
     try:
@@ -308,14 +308,3 @@ async def update_track_metadata(
     except Exception as e:
         logger.error(f"Error updating metadata for track {track_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error updating metadata")
-
-@router.patch("/tracks/{track_id}/metadata", response_model=dict)
-async def patch_track_metadata(
-    track_id: str,
-    metadata_update: MetadataUpdate,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Partially update metadata for a specific track (alias for PUT)"""
-    # PATCH behaves the same as PUT in this case since we only update provided fields
-    return await update_track_metadata(track_id, metadata_update, current_user, db)
