@@ -36,7 +36,7 @@ const Login = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate('/'); // Redirect to home after successful login
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue lors de la connexion');
     } finally {
@@ -55,7 +55,7 @@ const Login = () => {
         {/* Header with Logo */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <Logo size="lg" linkTo="" />
+            <Logo size="lg" variant="both" linkTo="" />
           </div>
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
             Connexion à Sinuzoid

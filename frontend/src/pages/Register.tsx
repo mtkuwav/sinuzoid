@@ -132,7 +132,7 @@ const Register = () => {
         {/* Header with Logo */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <Logo size="lg" linkTo="" />
+            <Logo size="lg" variant="both" linkTo="" />
           </div>
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
             Créer un compte Sinuzoid
@@ -177,7 +177,7 @@ const Register = () => {
             <PasswordInput
               name="password"
               label="Mot de passe"
-              placeholder="Au moins 8 caractères avec majuscule, minuscule et chiffre"
+              placeholder="Mot de passe robuste"
               value={formData.password}
               onChange={handleInputChange}
               disabled={isLoading}

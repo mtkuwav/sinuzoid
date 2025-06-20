@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router';
 import { FiSearch, FiUser, FiBell, FiMenu, FiLogOut } from 'react-icons/fi';
-import { IoMdMusicalNote } from 'react-icons/io';
 import { useAuth } from '../../contexts/AuthContext';
+import { Logo } from '../ui';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -62,10 +62,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <IoMdMusicalNote className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            <span className="ml-2 text-xl font-semibold text-gray-800 dark:text-white">Sinuzoid</span>
-          </Link>
+          <Logo size="md" variant="both" linkTo="/" />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">

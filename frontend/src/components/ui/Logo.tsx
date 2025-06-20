@@ -1,41 +1,76 @@
 import { Link } from 'react-router';
-import { IoMdMusicalNote } from 'react-icons/io';
+import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
+import LogoWithText from '../../assets/logos/logo_sinuzoid_text-cyan.svg?react';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
   className?: string;
   linkTo?: string;
+  variant?: 'icon' | 'text' | 'both';
 }
 
-const Logo = ({ size = 'md', showText = true, className = '', linkTo = '/' }: LogoProps) => {
+const Logo = ({ size = 'md', showText = true, className = '', linkTo = '/', variant = 'both' }: LogoProps) => {
   const sizeConfig = {
     sm: {
-      icon: 'h-6 w-6',
-      text: 'text-lg'
+      icon: 'h-8 w-auto',
+      text: 'h-6 w-auto',
+      both: 'h-7 w-auto',
+      spacing: 'space-x-2'
     },
     md: {
-      icon: 'h-8 w-8',
-      text: 'text-xl'
+      icon: 'h-10 w-auto',
+      text: 'h-7 w-auto', 
+      both: 'h-8 w-auto',
+      spacing: 'space-x-3'
     },
     lg: {
-      icon: 'h-12 w-12',
-      text: 'text-3xl'
+      icon: 'h-14 w-auto',
+      text: 'h-10 w-auto',
+      both: 'h-12 w-auto',
+      spacing: 'space-x-4'
     }
   };
   
   const config = sizeConfig[size];
   
-  const LogoContent = () => (
-    <div className={`flex items-center ${className}`}>
-      <IoMdMusicalNote className={`${config.icon} text-blue-600 dark:text-blue-400`} />
-      {showText && (
-        <span className={`ml-2 ${config.text} font-semibold text-gray-800 dark:text-white`}>
-          Sinuzoid
-        </span>
-      )}
-    </div>
-  );
+  const LogoContent = () => {
+    // Si variant est 'text', on utilise directement le logo avec texte
+    if (variant === 'text') {
+      return (
+        <div className={`flex items-center ${className}`}>
+          <LogoWithText 
+            className={`${config.text} fill-blue-600 dark:fill-blue-400`}
+          />
+        </div>
+      );
+    }
+    
+    // Si variant est 'icon', on utilise seulement l'icône
+    if (variant === 'icon') {
+      return (
+        <div className={`flex items-center ${className}`}>
+          <LogoIcon 
+            className={`${config.icon} fill-blue-600 dark:fill-blue-400`}
+          />
+        </div>
+      );
+    }
+    
+    // Si variant est 'both' (défaut), on utilise l'icône + texte SVG séparé
+    return (
+      <div className={`flex items-center ${config.spacing} ${className}`}>
+        <LogoIcon 
+          className={`${config.icon} fill-blue-600 dark:fill-blue-400`}
+        />
+        {showText && (
+          <LogoWithText 
+            className={`${config.text} fill-blue-600 dark:fill-blue-400`}
+          />
+        )}
+      </div>
+    );
+  };
   
   if (linkTo) {
     return (
