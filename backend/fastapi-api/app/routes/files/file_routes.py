@@ -11,6 +11,8 @@ from .cover_handler import CoverHandler
 from .track_search_handler import TrackSearchHandler
 from .file_security import FileSecurity
 
+from app.services.storage_quota_service import StorageQuotaService
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -219,3 +221,28 @@ async def get_popular_tracks(
     """Get most accessed tracks"""
     user_id = current_user["id"]
     return TrackSearchHandler.get_popular_tracks(user_id, db, limit)
+
+@router.get("/storage/info", response_model=StorageInfoResponse)
+async def get_storage_info(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's storage quota and usage information"""
+    user_id = current_user["id"]
+    
+    try:
+        storage_info = StorageQuotaService.get_user_storage_info(db, user_id)
+        
+        return StorageInfoResponse(
+            quota=storage_info["quota"],
+            used=storage_info["used"],
+            available=storage_info["available"],
+            usage_percentage=storage_info["usage_percentage"],
+            quota_formatted=StorageQuotaService.format_bytes(storage_info["quota"]),
+            used_formatted=StorageQuotaService.format_bytes(storage_info["used"]),
+            available_formatted=StorageQuotaService.format_bytes(storage_info["available"])
+        )
+        
+    except Exception as e:
+        logger.error(f"Error getting storage info for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving storage information")
