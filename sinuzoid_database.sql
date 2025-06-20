@@ -327,7 +327,6 @@ CREATE TABLE public.tracks (
     duration character varying(255) NOT NULL,
     upload_date timestamp(0) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_accessed timestamp(0) without time zone,
-    is_public boolean DEFAULT false NOT NULL,
     cover_path character varying(512),
     cover_thumbnail_path character varying(512),
     updated_at timestamp(0) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
