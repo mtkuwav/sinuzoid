@@ -57,6 +57,27 @@ class MetadataResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class MetadataUpdate(BaseModel):
+    """Schema for updating track metadata"""
+    title: Optional[str] = None
+    artist: Optional[str] = None
+    album: Optional[str] = None
+    albumartist: Optional[str] = None
+    date: Optional[str] = None
+    genre: Optional[str] = None
+    track: Optional[str] = None
+    disc: Optional[str] = None
+    comment: Optional[str] = None
+    lyrics: Optional[str] = None
+    bpm: Optional[float] = None
+    key: Optional[str] = None
+    remixer: Optional[str] = None
+    producer: Optional[str] = None
+    label: Optional[str] = None
+    catalog_number: Optional[str] = None
+    isrc: Optional[str] = None
+    barcode: Optional[str] = None
+
 class PlaylistBase(BaseModel):
     name: str
     description: Optional[str] = None
