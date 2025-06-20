@@ -2,9 +2,11 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from app.dependencies.auth import get_current_user
 from app.database import get_db
-from app.schemas.schemas import TrackResponse, StorageInfoResponse, TrackSearchResult
+from app.schemas.schemas import TrackResponse, StorageInfoResponse, TrackSearchResult, MetadataUpdate, MetadataResponse
 from typing import List
+from uuid import UUID
 import logging
+from uuid import UUID
 
 from .audio_handler import AudioHandler
 from .cover_handler import CoverHandler
@@ -12,6 +14,7 @@ from .track_search_handler import TrackSearchHandler
 from .file_security import FileSecurity
 
 from app.services.storage_quota_service import StorageQuotaService
+from app.services.metadata_edit_service import MetadataEditService
 
 logger = logging.getLogger(__name__)
 
@@ -246,3 +249,73 @@ async def get_storage_info(
     except Exception as e:
         logger.error(f"Error getting storage info for user {user_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving storage information")
+
+# Metadata editing operations
+@router.get("/tracks/{track_id}/metadata", response_model=dict)
+async def get_track_metadata(
+    track_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get metadata for a specific track"""
+    user_id = current_user["id"]
+    
+    try:
+        track_uuid = UUID(track_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid track ID format")
+    
+    metadata = MetadataEditService.get_track_metadata(db, track_uuid, user_id)
+    
+    if metadata is None:
+        raise HTTPException(status_code=404, detail="Track not found or access denied")
+    
+    return metadata
+
+@router.put("/tracks/{track_id}/metadata", response_model=dict)
+async def update_track_metadata(
+    track_id: str,
+    metadata_update: MetadataUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update metadata for a specific track"""
+    user_id = current_user["id"]
+    
+    try:
+        track_uuid = UUID(track_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid track ID format")
+    
+    # Validate metadata fields
+    validation_errors = MetadataEditService.validate_metadata_fields(metadata_update)
+    if validation_errors:
+        raise HTTPException(status_code=400, detail={"validation_errors": validation_errors})
+    
+    try:
+        updated_metadata = MetadataEditService.update_track_metadata(db, track_uuid, user_id, metadata_update)
+        
+        if updated_metadata is None:
+            raise HTTPException(status_code=404, detail="Track not found or access denied")
+        
+        logger.info(f"Metadata updated for track {track_id} by user {user_id}")
+        return {
+            "message": "Metadata updated successfully",
+            "track_id": track_id,
+            "updated_metadata": updated_metadata
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating metadata for track {track_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error updating metadata")
+
+@router.patch("/tracks/{track_id}/metadata", response_model=dict)
+async def patch_track_metadata(
+    track_id: str,
+    metadata_update: MetadataUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Partially update metadata for a specific track (alias for PUT)"""
+    # PATCH behaves the same as PUT in this case since we only update provided fields
+    return await update_track_metadata(track_id, metadata_update, current_user, db)
