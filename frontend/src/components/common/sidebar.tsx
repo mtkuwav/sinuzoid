@@ -11,7 +11,8 @@ import {
   FiClock, 
   FiDownload,
   FiSearch,
-  FiUser
+  FiUser,
+  FiUpload
 } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -49,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { name: 'Accueil', icon: <FiHome />, path: '/' },
     { name: 'Découvrir', icon: <FiCompass />, path: '/discover' },
     { name: 'Bibliothèque', icon: <FiBookOpen />, path: '/library' },
+    { name: 'Upload', icon: <FiUpload />, path: '/upload' },
     { name: 'Radio', icon: <FiRadio />, path: '/radio' }
   ];
   

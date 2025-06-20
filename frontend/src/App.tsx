@@ -11,6 +11,7 @@ import Discover from './pages/Discover';
 import Library from './pages/Library';
 import Radio from './pages/Radio';
 import Playlists from './pages/Playlists';
+import Upload from './pages/Upload';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
@@ -30,6 +31,7 @@ function App() {
             <Route index element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+            <Route path="upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
             <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
