@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { 
   FiHome, 
   FiCompass, 
@@ -11,9 +11,9 @@ import {
   FiClock, 
   FiDownload,
   FiSearch,
-  FiBell,
   FiUser
 } from 'react-icons/fi';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -31,6 +31,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
   
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -95,19 +97,41 @@ const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Actions
             </h3>
-            <div className="grid grid-cols-3 gap-2 px-2">
-              <button className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <div className="grid grid-cols-2 gap-2 px-2">
+              <button 
+                onClick={() => {
+                  // TODO: Implémenter la recherche
+                  console.log('Recherche clicked');
+                  onClose?.();
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
                 <FiSearch className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs">Rechercher</span>
+                <span className="text-xs text-gray-700 dark:text-gray-300">Rechercher</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <FiBell className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs">Notifications</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <FiUser className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs">Profil</span>
-              </button>
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => {
+                    navigate('/profile');
+                    onClose?.();
+                  }}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiUser className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">Profil</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => {
+                    navigate('/login');
+                    onClose?.();
+                  }}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiUser className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">Connexion</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -118,6 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <li key={item.path} className="mb-1">
                   <Link 
                     to={item.path}
+                    onClick={onClose}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive(item.path)
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -142,6 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <li key={item.path} className="mb-1">
                   <Link 
                     to={item.path}
+                    onClick={onClose}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive(item.path)
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -174,6 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <>
                 <Link 
                   to="/playlists/create"
+                  onClick={onClose}
                   className="flex items-center px-3 py-2 mb-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <FiPlus className="mr-3" />
@@ -185,6 +212,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <li key={index} className="mb-1">
                       <Link 
                         to={playlist.path}
+                        onClick={onClose}
                         className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
                           isActive(playlist.path)
                             ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'

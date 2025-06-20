@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '../components/ui';
 
 const Radio: React.FC = () => {
   return (
@@ -18,9 +19,9 @@ const Radio: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">{station}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-200">Station personnalisée</p>
               </div>
-              <button className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+              <Button variant="primary" size="md">
                 Écouter
-              </button>
+              </Button>
             </div>
           </div>
         ))}

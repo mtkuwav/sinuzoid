@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router';
-import { FiSearch, FiUser, FiBell, FiMenu, FiLogOut } from 'react-icons/fi';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { FiSearch, FiUser, FiMenu, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
-import { Logo } from '../ui';
+import { Logo, Button } from '../ui';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -13,6 +13,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isMobileMenuOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
@@ -84,33 +85,33 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
             {/* Menu button - visible uniquement sur mobile */}
-            <button 
-              className="md:hidden text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" 
+            <Button 
+              variant="icon"
+              size="md"
+              className="md:hidden" 
               onClick={onMenuClick}
             >
               <FiMenu className="h-5 w-5" />
-            </button>
+            </Button>
             
-            {/* Icône de recherche - visible uniquement sur desktop */}
-            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
+            {/* Icônes desktop uniquement */}
+            <Button variant="icon" size="md" className="hidden md:block">
               <FiSearch className="h-5 w-5" />
-            </button>
+            </Button>
             
             {isAuthenticated ? (
               <>
-                <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
-                  <FiBell className="h-5 w-5" />
-                </button>
-                
-                {/* User dropdown */}
-                <div className="relative user-menu">
-                  <button 
-                    className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none"
+                {/* User dropdown - uniquement sur desktop */}
+                <div className="relative user-menu hidden md:block">
+                  <Button 
+                    variant="icon"
+                    size="md"
+                    className="flex items-center space-x-2"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                   >
                     <FiUser className="h-5 w-5" />
                     <span className="hidden md:block text-sm font-medium">{user?.username}</span>
-                  </button>
+                  </Button>
                   
                   {userMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 z-50">
@@ -119,23 +120,29 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                           <div className="font-medium">{user?.username}</div>
                           <div className="text-xs text-gray-500">{user?.email}</div>
                         </div>
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setUserMenuOpen(false)}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            navigate('/profile');
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-start"
                         >
                           Profil
-                        </Link>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
                             logout();
                             setUserMenuOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-start"
                         >
                           <FiLogOut className="h-4 w-4 mr-2" />
                           Déconnexion
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -143,18 +150,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               </>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link
-                  to="/login"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                <Button 
+                  variant="nav" 
+                  size="sm"
+                  onClick={() => navigate('/login')}
                 >
                   Connexion
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                </Button>
+                <Button 
+                  variant="nav" 
+                  size="sm"
+                  onClick={() => navigate('/register')}
                 >
                   S'inscrire
-                </Link>
+                </Button>
               </div>
             )}
           </div>

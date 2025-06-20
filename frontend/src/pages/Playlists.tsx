@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '../components/ui';
 
 const Playlists: React.FC = () => {
   return (
@@ -10,9 +11,9 @@ const Playlists: React.FC = () => {
         Organisez votre musique en playlists personnalisées.
       </p>
       
-      <button className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 mb-6 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+      <Button variant="primary" size="lg" className="mb-6">
         Créer une nouvelle playlist
-      </button>
+      </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {['Mes favoris', 'Découvertes', 'Rock classique', 'Jazz lounge', 'Pour méditer'].map((playlist) => (
