@@ -16,12 +16,10 @@ const Upload: React.FC = () => {
     
     setUploadSuccess(message);
     
-    // Force refresh of storage info with a slight delay
     setTimeout(() => {
       setRefreshStorage(prev => prev + 1);
-    }, 1000); // 1 second delay to ensure server processing is complete
+    }, 1000);
     
-    // Clear success message after 5 seconds
     setTimeout(() => {
       setUploadSuccess(null);
     }, 5000);

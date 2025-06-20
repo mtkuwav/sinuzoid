@@ -14,9 +14,27 @@ class FileSecurity:
             if db is None:
                 return False
             
-            # Check if the track exists for this user
+            # Check if the track exists for this user (for audio files)
             track = TrackService.get_track_by_filename(db, filename, user_id)
-            return track is not None
+            if track is not None:
+                return True
+            
+            # Check if this is a cover file by looking at cover_path and cover_thumbnail_path
+            from app.models.models import Track
+            from sqlalchemy import and_, or_
+            
+            cover_track = db.query(Track).filter(
+                and_(
+                    Track.user_id == user_id,
+                    or_(
+                        Track.cover_path.contains(filename),
+                        Track.cover_thumbnail_path.contains(filename)
+                    )
+                )
+            ).first()
+            
+            return cover_track is not None
+            
         except Exception as e:
             logger.error(f"Error verifying file ownership: {str(e)}")
             return False
