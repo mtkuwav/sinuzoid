@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ${
         isScrolled 
           ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm' 
           : 'bg-white dark:bg-gray-900'
@@ -114,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   </Button>
                   
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 z-50">
+                    <div className="fixed right-4 top-16 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 z-[9999]">
                       <div className="py-1">
                         <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b dark:border-gray-700">
                           <div className="font-medium">{user?.username}</div>
