@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { FiUploadCloud, FiX, FiMusic, FiAlertCircle } from 'react-icons/fi';
+import { useState, useRef, useEffect } from 'react';
+import { FiUploadCloud, FiX, FiMusic, FiAlertCircle, FiFolder, FiFile } from 'react-icons/fi';
 import { Card, Button } from '../ui';
 
 interface UploadFile {
@@ -15,6 +15,7 @@ interface FileUploadProps {
   maxFileSize?: number; // in MB
   acceptedTypes?: string[];
   multiple?: boolean;
+  allowDirectories?: boolean;
   className?: string;
 }
 
@@ -23,11 +24,13 @@ const FileUpload = ({
   maxFileSize = 100, // 100 MB default
   acceptedTypes = ['.mp3', '.wav', '.flac', '.m4a', '.aac'],
   multiple = true,
+  allowDirectories = false,
   className = ''
 }: FileUploadProps) => {
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [directoryMode, setDirectoryMode] = useState(allowDirectories);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -75,6 +78,18 @@ const FileUpload = ({
     }
   };
 
+  // Auto-upload files when they are added
+  useEffect(() => {
+    const pendingFiles = uploadFiles.filter(f => f.status === 'pending');
+    if (pendingFiles.length > 0 && !isUploading) {
+      // Auto-upload with a small delay to allow UI to update
+      const timer = setTimeout(() => {
+        handleUploadAll();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadFiles, isUploading]);
+
   const uploadFile = async (uploadFile: UploadFile): Promise<void> => {
     const formData = new FormData();
     formData.append('file', uploadFile.file);
@@ -103,6 +118,12 @@ const FileUpload = ({
             setUploadFiles(prev => 
               prev.map(f => f.id === uploadFile.id ? { ...f, status: 'success', progress: 100 } : f)
             );
+            
+            // Call onUploadComplete immediately for this file
+            if (onUploadComplete) {
+              onUploadComplete([uploadFile.file]);
+            }
+            
             resolve();
           } else {
             let errorMessage = 'Erreur lors de l\'upload';
@@ -222,6 +243,30 @@ const FileUpload = ({
   return (
     <Card className={className}>
       <div className="space-y-6">
+        {/* Mode Toggle */}
+        {allowDirectories && (
+          <div className="flex items-center justify-center space-x-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <Button
+              onClick={() => setDirectoryMode(false)}
+              variant={!directoryMode ? "primary" : "secondary"}
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <FiFile className="w-4 h-4" />
+              <span>Fichiers</span>
+            </Button>
+            <Button
+              onClick={() => setDirectoryMode(true)}
+              variant={directoryMode ? "primary" : "secondary"}
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <FiFolder className="w-4 h-4" />
+              <span>Dossiers</span>
+            </Button>
+          </div>
+        )}
+
         {/* Drop Zone */}
         <div
           className={`
@@ -237,17 +282,17 @@ const FileUpload = ({
         >
           <FiUploadCloud className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
-            Glissez-déposez vos fichiers audio ici
+            {directoryMode ? 'Glissez-déposez vos dossiers ou fichiers audio ici' : 'Glissez-déposez vos fichiers audio ici'}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            ou cliquez pour sélectionner des fichiers
+            {directoryMode ? 'ou cliquez pour sélectionner des dossiers ou fichiers' : 'ou cliquez pour sélectionner des fichiers'}
           </p>
           <Button
             onClick={() => fileInputRef.current?.click()}
             variant="primary"
             className="mb-2"
           >
-            Sélectionner des fichiers
+            {directoryMode ? 'Sélectionner des dossiers' : 'Sélectionner des fichiers'}
           </Button>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Formats supportés: {acceptedTypes.join(', ')} • Taille max: {maxFileSize} MB
@@ -259,6 +304,7 @@ const FileUpload = ({
             accept={acceptedTypes.join(',')}
             onChange={handleFileSelect}
             className="hidden"
+            {...(directoryMode ? { webkitdirectory: '' } : {})}
           />
         </div>
 

@@ -17,13 +17,15 @@ interface StorageInfoProps {
   showHeader?: boolean;
   autoRefresh?: boolean;
   refreshInterval?: number; // in milliseconds
+  refreshTrigger?: number; // trigger refresh when this value changes
 }
 
 const StorageInfo = ({ 
   className = '', 
   showHeader = true,
   autoRefresh = false,
-  refreshInterval = 30000 
+  refreshInterval = 30000,
+  refreshTrigger
 }: StorageInfoProps) => {
   const [storageData, setStorageData] = useState<StorageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +65,20 @@ const StorageInfo = ({
   useEffect(() => {
     fetchStorageInfo();
   }, []);
+
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      // Set loading state immediately
+      setIsLoading(true);
+      
+      // Add a small delay to ensure the server has updated the storage info
+      const timer = setTimeout(() => {
+        fetchStorageInfo();
+      }, 500); // 500ms delay
+      
+      return () => clearTimeout(timer);
+    }
+  }, [refreshTrigger]);
 
   useEffect(() => {
     if (autoRefresh && refreshInterval > 0) {
