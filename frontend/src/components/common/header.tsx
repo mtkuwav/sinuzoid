@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router';
-import { FiSearch, FiUser, FiBell, FiMenu } from 'react-icons/fi';
+import { FiSearch, FiUser, FiBell, FiMenu, FiLogOut } from 'react-icons/fi';
 import { IoMdMusicalNote } from 'react-icons/io';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -10,7 +11,9 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [isMobileMenuOpen] = useState<boolean>(false);
+  const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,9 +24,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       }
     };
 
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuOpen && !(event.target as Element)?.closest('.user-menu')) {
+        setUserMenuOpen(false);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   const isActive = (path: string): boolean => {
     return location.pathname === path;
@@ -85,13 +99,67 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <FiSearch className="h-5 w-5" />
             </button>
             
-            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
-              <FiBell className="h-5 w-5" />
-            </button>
-            
-            <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
-              <FiUser className="h-5 w-5" />
-            </button>
+            {isAuthenticated ? (
+              <>
+                <button className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
+                  <FiBell className="h-5 w-5" />
+                </button>
+                
+                {/* User dropdown */}
+                <div className="relative user-menu">
+                  <button 
+                    className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  >
+                    <FiUser className="h-5 w-5" />
+                    <span className="hidden md:block text-sm font-medium">{user?.username}</span>
+                  </button>
+                  
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 z-50">
+                      <div className="py-1">
+                        <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b dark:border-gray-700">
+                          <div className="font-medium">{user?.username}</div>
+                          <div className="text-xs text-gray-500">{user?.email}</div>
+                        </div>
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Profil
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                        >
+                          <FiLogOut className="h-4 w-4 mr-2" />
+                          Déconnexion
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  S'inscrire
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
