@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FiAlertCircle, FiLoader, FiRefreshCw } from 'react-icons/fi';
+import { useLocation } from 'react-router';
 import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicUtils } from '../hooks/useMusicStore';
 import { useImagePreloader, useImageCleanup } from '../hooks/useImagePreloader';
@@ -13,6 +14,7 @@ import { Alert } from '../components/ui';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Library: React.FC = () => {
+  const location = useLocation();
   const {
     tracks,
     albums,
@@ -30,6 +32,38 @@ const Library: React.FC = () => {
   const [viewMode, setViewMode] = useState<'albums' | 'tracks'>('albums');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('album');
+
+  // Initialize state from navigation params if present
+  useEffect(() => {
+    if (location.state) {
+      const { searchQuery: navSearchQuery, viewMode: navViewMode } = location.state as any;
+      if (navSearchQuery) {
+        setSearchQuery(navSearchQuery);
+      }
+      if (navViewMode) {
+        setViewMode(navViewMode);
+      }
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const view = params.get('view');
+    const search = params.get('search');
+    const sort = params.get('sort');
+
+    if (view === 'tracks' || view === 'albums') {
+      setViewMode(view);
+    }
+
+    if (search) {
+      setSearchQuery(search);
+    }
+
+    if (sort === 'artist' || sort === 'year' || sort === 'recent' || sort === 'name' || sort === 'album') {
+      setSortBy(sort);
+    }
+  }, [location.search]);
 
   const filteredAndSortedData = useMemo(() => {
     let filteredTracks = tracks;

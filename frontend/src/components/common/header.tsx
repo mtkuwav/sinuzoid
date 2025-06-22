@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { FiSearch, FiUser, FiMenu, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { Logo, Button } from '../ui';
+import GlobalSearch from './GlobalSearch';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -12,6 +13,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [isMobileMenuOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -84,6 +86,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
+            {/* Search button - visible sur tous les écrans */}
+            <Button 
+              variant="icon" 
+              size="md"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <FiSearch className="h-5 w-5" />
+            </Button>
+            
             {/* Menu button - visible uniquement sur mobile */}
             <Button 
               variant="icon"
@@ -92,11 +103,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               onClick={onMenuClick}
             >
               <FiMenu className="h-5 w-5" />
-            </Button>
-            
-            {/* Icônes desktop uniquement */}
-            <Button variant="icon" size="md" className="hidden md:block">
-              <FiSearch className="h-5 w-5" />
             </Button>
             
             {isAuthenticated ? (
@@ -189,6 +195,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Global Search Modal */}
+      {isSearchOpen && (
+        <GlobalSearch 
+          isOpen={isSearchOpen} 
+          onClose={() => setIsSearchOpen(false)} 
+        />
       )}
     </header>
   );
