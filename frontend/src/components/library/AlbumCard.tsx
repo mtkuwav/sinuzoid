@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { FiMusic, FiClock, FiHardDrive, FiPlay } from 'react-icons/fi';
 import { Track, Album } from '../../hooks/useTracks';
 import { useMusicImages } from '../../hooks/useMusicStore';
+import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 interface AlbumCardProps {
   album: Album;
@@ -107,10 +108,10 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-            <FiMusic className="w-12 h-12 text-gray-400 dark:text-gray-500 fallback-icon" />
+            <LogoIcon className="w-12 h-12 fill-gray-500 dark:fill-gray-400 fallback-icon" />
           </div>
         )}
-        <FiMusic className="w-12 h-12 text-gray-400 dark:text-gray-500 fallback-icon hidden absolute inset-0 m-auto" />
+        <LogoIcon className="w-12 h-12 fill-gray-500 dark:fill-gray-400 fallback-icon hidden absolute inset-0 m-auto" />
         
         {/* Overlay with play button */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">

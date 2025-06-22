@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FiMusic, FiAlertCircle, FiLoader, FiRefreshCw } from 'react-icons/fi';
+import { FiAlertCircle, FiLoader, FiRefreshCw } from 'react-icons/fi';
 import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicUtils } from '../hooks/useMusicStore';
 import { useImagePreloader, useImageCleanup } from '../hooks/useImagePreloader';
@@ -10,8 +10,7 @@ import {
   LibraryStats 
 } from '../components/library';
 import { Alert } from '../components/ui';
-import MusicStoreDebugger from '../components/debug/MusicStoreDebugger';
-import PerformanceIndicator from '../components/ui/PerformanceIndicator';
+import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Library: React.FC = () => {
   const {
@@ -261,7 +260,7 @@ const Library: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
                     Aucun album trouvé
                   </h3>
@@ -283,7 +282,7 @@ const Library: React.FC = () => {
               />
               ) : (
                 <div className="text-center py-16">
-                  <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
                     Aucun titre trouvé
                   </h3>
@@ -299,12 +298,6 @@ const Library: React.FC = () => {
           )}
         </div>
       )}
-      
-      {/* Indicateur de performance */}
-      <PerformanceIndicator />
-      
-      {/* Debugger pour le développement */}
-      <MusicStoreDebugger />
     </div>
   );
 };

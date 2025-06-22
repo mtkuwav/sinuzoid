@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiMusic, FiUser, FiCalendar, FiPlay, FiMoreVertical } from 'react-icons/fi';
+import { FiUser, FiCalendar, FiPlay, FiMoreVertical } from 'react-icons/fi';
 import { Track } from '../../hooks/useTracks';
+import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 import { useMusicImages, useMusicUtils } from '../../hooks/useMusicStore';
 
 interface TrackListProps {
@@ -65,9 +66,9 @@ const TrackItem: React.FC<{
                 }}
               />
             ) : (
-              <FiMusic className="w-4 h-4 text-gray-400 dark:text-gray-500 fallback-icon" />
+              <LogoIcon className="w-4 h-4 fill-gray-500 dark:fill-gray-400 fallback-icon" />
             )}
-            <FiMusic className="w-4 h-4 text-gray-400 dark:text-gray-500 fallback-icon hidden" />
+            <LogoIcon className="w-4 h-4 fill-gray-500 dark:fill-gray-400 fallback-icon hidden" />
           </div>
 
           {/* Info */}
@@ -142,7 +143,7 @@ const TrackList: React.FC<TrackListProps> = ({
 
       {tracks.length === 0 && (
         <div className="p-8 text-center">
-          <FiMusic className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <LogoIcon className="w-12 h-12 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">Aucun titre trouvé</p>
         </div>
       )}

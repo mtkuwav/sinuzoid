@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { FiArrowLeft, FiPlay, FiShuffle, FiMoreHorizontal, FiClock, FiMusic } from 'react-icons/fi';
+import { FiArrowLeft, FiPlay, FiShuffle, FiMoreHorizontal, FiClock } from 'react-icons/fi';
 import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicImages, useMusicUtils } from '../hooks/useMusicStore';
 import { Button } from '../components/ui';
+import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Album: React.FC = () => {
   const { albumName } = useParams<{ albumName: string }>();
@@ -148,7 +149,7 @@ const Album: React.FC = () => {
             Retour à la bibliothèque
           </Button>
           <div className="text-center py-16">
-            <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
               Album introuvable
             </h3>
@@ -188,7 +189,7 @@ const Album: React.FC = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-lg shadow-lg flex items-center justify-center">
-                  <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400" />
                 </div>
               )}
             </div>
