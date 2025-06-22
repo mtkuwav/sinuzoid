@@ -13,6 +13,7 @@ import Library from './pages/Library';
 import Album from './pages/Album';
 import Radio from './pages/Radio';
 import Playlists from './pages/Playlists';
+import PlaylistDetail from './pages/PlaylistDetail';
 import Upload from './pages/Upload';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -39,6 +40,7 @@ const AppWithSync = () => {
         <Route path="upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
         <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
+        <Route path="playlists/:playlistId" element={<ProtectedRoute><PlaylistDetail /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         {/* Route 404 - à créer plus tard */}
         <Route path="*" element={<div className="container mx-auto px-4 py-8"><h1>Page non trouvée</h1></div>} />

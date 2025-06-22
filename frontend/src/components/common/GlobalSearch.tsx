@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { FiSearch, FiX, FiMusic, FiDisc } from 'react-icons/fi';
+import { FiSearch, FiX, FiMusic, FiDisc, FiList } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
 import { useMusicData } from '../../hooks/useMusicStore';
+import { usePlaylistData } from '../../hooks/usePlaylist';
 import { Track, Album } from '../../hooks/useTracks';
+import { Playlist } from '../../types/playlist';
 import { Input } from '../ui';
 
 interface GlobalSearchProps {
@@ -11,15 +13,16 @@ interface GlobalSearchProps {
 }
 
 interface SearchResult {
-  type: 'track' | 'album';
-  item: Track | Album;
-  matchType: 'title' | 'artist' | 'album' | 'genre';
+  type: 'track' | 'album' | 'playlist';
+  item: Track | Album | Playlist;
+  matchType: 'title' | 'artist' | 'album' | 'genre' | 'name' | 'description';
 }
 
 const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { tracks, albums } = useMusicData();
+  const { playlists } = usePlaylistData();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -36,9 +39,12 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
     if (result.type === 'track') {
       const track = result.item as Track;
       return track.metadata?.title || track.original_filename;
-    } else {
+    } else if (result.type === 'album') {
       const album = result.item as Album;
       return album.name;
+    } else {
+      const playlist = result.item as Playlist;
+      return playlist.name;
     }
   };
 
@@ -46,9 +52,12 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
     if (result.type === 'track') {
       const track = result.item as Track;
       return track.metadata?.artist || 'Artiste inconnu';
-    } else {
+    } else if (result.type === 'album') {
       const album = result.item as Album;
       return album.artist || 'Artiste inconnu';
+    } else {
+      const playlist = result.item as Playlist;
+      return playlist.description || `${playlist.tracks?.length || 0} titre${(playlist.tracks?.length || 0) !== 1 ? 's' : ''}`;
     }
   };
 
@@ -58,6 +67,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
       case 'artist': return 'Artiste';
       case 'album': return 'Album';
       case 'genre': return 'Genre';
+      case 'name': return 'Nom';
+      case 'description': return 'Description';
       default: return '';
     }
   };
@@ -71,7 +82,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
           viewMode: 'tracks'
         }
       });
-    } else {
+    } else if (result.type === 'album') {
       // Navigate to library with album view
       navigate('/library', { 
         state: { 
@@ -79,6 +90,10 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
           viewMode: 'albums'
         }
       });
+    } else {
+      // Navigate to playlist detail
+      const playlist = result.item as Playlist;
+      navigate(`/playlists/${encodeURIComponent(playlist.id)}`);
     }
     onClose();
     setSearchQuery('');
@@ -151,6 +166,30 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
       }
     });
 
+    // Search in playlists
+    playlists.forEach(playlist => {
+      const matches: Array<{ type: SearchResult['matchType'], score: number }> = [];
+
+      // Playlist name match
+      if (playlist.name.toLowerCase().includes(query)) {
+        matches.push({ type: 'name', score: playlist.name.toLowerCase().indexOf(query) === 0 ? 10 : 5 });
+      }
+
+      // Description match
+      if (playlist.description?.toLowerCase().includes(query)) {
+        matches.push({ type: 'description', score: playlist.description.toLowerCase().indexOf(query) === 0 ? 8 : 3 });
+      }
+
+      if (matches.length > 0) {
+        const bestMatch = matches.sort((a, b) => b.score - a.score)[0];
+        results.push({
+          type: 'playlist',
+          item: playlist,
+          matchType: bestMatch.type
+        });
+      }
+    });
+
     // Sort results by relevance and limit to 10
     return results
       .sort((a, b) => {
@@ -161,15 +200,16 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
         if (aStartsWith && !bStartsWith) return -1;
         if (!aStartsWith && bStartsWith) return 1;
         
-        // Then by type (albums first, then tracks)
+        // Then by type (playlists first, then albums, then tracks)
         if (a.type !== b.type) {
-          return a.type === 'album' ? -1 : 1;
+          const typeOrder = { 'playlist': 0, 'album': 1, 'track': 2 };
+          return typeOrder[a.type] - typeOrder[b.type];
         }
         
         return 0;
       })
       .slice(0, 10);
-  }, [searchQuery, tracks, albums]);
+  }, [searchQuery, tracks, albums, playlists]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -246,7 +286,13 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
                 <div className="py-2">
                   {searchResults.map((result, index) => (
                     <button
-                      key={`${result.type}-${result.type === 'track' ? (result.item as Track).id : `${(result.item as Album).name}-${(result.item as Album).artist}`}`}
+                      key={`${result.type}-${
+                        result.type === 'track' 
+                          ? (result.item as Track).id 
+                          : result.type === 'album'
+                          ? `${(result.item as Album).name}-${(result.item as Album).artist}`
+                          : (result.item as Playlist).id
+                      }`}
                       onClick={() => handleResultClick(result)}
                       className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
                         index === selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
@@ -256,8 +302,10 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
                         <div className="flex-shrink-0">
                           {result.type === 'track' ? (
                             <FiMusic className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          ) : (
+                          ) : result.type === 'album' ? (
                             <FiDisc className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          ) : (
+                            <FiList className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -275,7 +323,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
                         </div>
                         <div className="flex-shrink-0">
                           <span className="text-xs text-gray-400 dark:text-gray-500 uppercase font-medium">
-                            {result.type === 'track' ? 'Titre' : 'Album'}
+                            {result.type === 'track' ? 'Titre' : result.type === 'album' ? 'Album' : 'Playlist'}
                           </span>
                         </div>
                       </div>

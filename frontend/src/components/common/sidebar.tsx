@@ -15,6 +15,7 @@ import {
   FiUpload
 } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePlaylistData } from '../../hooks/usePlaylist';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -34,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { playlists } = usePlaylistData();
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -58,14 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { name: 'Récemment ajoutés', icon: <FiClock />, path: '/recently-added' },
     { name: 'Morceaux favoris', icon: <FiHeart />, path: '/favorites' },
     { name: 'Téléchargements', icon: <FiDownload />, path: '/downloads' },
-  ];
-
-  const playlists = [
-    { name: 'Mes favoris', path: '/playlist/favorites' },
-    { name: 'Découvertes', path: '/playlist/discoveries' },
-    { name: 'Rock classique', path: '/playlist/classic-rock' },
-    { name: 'Jazz lounge', path: '/playlist/jazz' },
-    { name: 'Pour méditer', path: '/playlist/meditation' }
   ];
 
   // Adaptative CSS class depending on the context (mobile or desktop)
@@ -103,7 +97,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button 
                 onClick={() => {
                   // TODO: Implémenter la recherche
-                  console.log('Recherche clicked');
                   onClose?.();
                 }}
                 className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -200,32 +193,57 @@ const Sidebar: React.FC<SidebarProps> = ({
             
             {expandedSections.playlists && (
               <>
-                <Link 
-                  to="/playlists/create"
-                  onClick={onClose}
-                  className="flex items-center px-3 py-2 mb-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                <button
+                  onClick={() => {
+                    onClose?.();
+                    navigate('/playlists');
+                  }}
+                  className="w-full flex items-center px-3 py-2 mb-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <FiPlus className="mr-3" />
                   <span>Nouvelle playlist</span>
-                </Link>
+                </button>
                 
                 <ul className="max-h-60 overflow-y-auto scrollbar-thin">
-                  {playlists.map((playlist, index) => (
-                    <li key={index} className="mb-1">
-                      <Link 
-                        to={playlist.path}
+                  {playlists.length > 0 ? (
+                    playlists.slice(0, 10).map((playlist) => {
+                      const playlistPath = `/playlists/${encodeURIComponent(playlist.id)}`;
+                      return (
+                        <li key={playlist.id} className="mb-1">
+                          <Link 
+                            to={playlistPath}
+                            onClick={onClose}
+                            className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
+                              isActive(playlistPath)
+                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                            }`}
+                          >
+                            <FiList className="mr-3 flex-shrink-0" />
+                            <span className="truncate">{playlist.name}</span>
+                          </Link>
+                        </li>
+                      );
+                    })
+                  ) : (
+                    <li className="px-3 py-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Aucune playlist
+                      </p>
+                    </li>
+                  )}
+                  
+                  {playlists.length > 10 && (
+                    <li className="mt-2">
+                      <Link
+                        to="/playlists"
                         onClick={onClose}
-                        className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
-                          isActive(playlist.path)
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
-                        }`}
+                        className="flex items-center px-3 py-2 rounded-md text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
-                        <FiList className="mr-3" />
-                        <span className="truncate">{playlist.name}</span>
+                        Voir toutes les playlists ({playlists.length})
                       </Link>
                     </li>
-                  ))}
+                  )}
                 </ul>
               </>
             )}

@@ -1,20 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FiAlertCircle, FiLoader, FiRefreshCw } from 'react-icons/fi';
-import { useLocation } from 'react-router';
+import { FiAlertCircle, FiLoader, FiRefreshCw, FiMusic } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router';
 import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicUtils } from '../hooks/useMusicStore';
 import { useImagePreloader, useImageCleanup } from '../hooks/useImagePreloader';
+import { usePlaylistData } from '../hooks/usePlaylist';
 import { 
   AlbumCard, 
   TrackList, 
   LibraryControls, 
   LibraryStats 
 } from '../components/library';
+import { PlaylistCard } from '../components/playlists';
 import { Alert } from '../components/ui';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Library: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     tracks,
     albums,
@@ -22,6 +25,11 @@ const Library: React.FC = () => {
     error,
     refetch
   } = useMusicData();
+  
+  const {
+    playlists,
+    isLoading: playlistsLoading
+  } = usePlaylistData();
   
   const { formatFileSize } = useMusicUtils();
   
@@ -265,6 +273,56 @@ const Library: React.FC = () => {
         onSearchChange={setSearchQuery}
         onSortChange={setSortBy}
       />
+
+      {/* Playlists Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+              Mes Playlists
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/playlists')}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
+          >
+            Voir tout
+          </button>
+        </div>
+
+        {playlistsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <FiLoader className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+          </div>
+        ) : playlists.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {playlists.slice(0, 5).map((playlist) => (
+              <PlaylistCard
+                key={playlist.id}
+                playlist={playlist}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+            <div className="text-center">
+              <FiMusic className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Aucune playlist créée
+              </p>
+              <button
+                onClick={() => navigate('/playlists')}
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-1"
+              >
+                Créer votre première playlist
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Content */}
       {isLoading ? (
