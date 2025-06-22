@@ -3,7 +3,7 @@ import { useMusicStore } from '../store/musicStore';
 import { useAuth } from './useAuth';
 
 /**
- * Hook pour la synchronisation automatique en arrière-plan
+ * Background autosync hook
  */
 export const useBackgroundSync = () => {
   const { user } = useAuth();
@@ -11,28 +11,24 @@ export const useBackgroundSync = () => {
   const intervalRef = useRef<number | null>(null);
   const lastVisibilityRef = useRef<string>(document.visibilityState);
 
-  // Fonction de synchronisation intelligente
   const syncData = useCallback(async () => {
     if (!user || isLoading) return;
     
     if (shouldRefetch()) {
-      console.log('🔄 Synchronisation en arrière-plan...');
       await fetchTracks();
     }
   }, [user, isLoading, shouldRefetch, fetchTracks]);
 
-  // Synchronisation périodique (toutes les 5 minutes)
+  // Perdiodic sync each 5 minutes
   useEffect(() => {
     if (!user) return;
 
-    // Synchronisation initiale après 1 seconde
+    // Initial sync after 1sec
     const initialTimer = setTimeout(() => {
       syncData();
     }, 1000);
 
-    // Synchronisation périodique
     intervalRef.current = setInterval(() => {
-      // Ne synchroniser que si l'onglet est visible
       if (document.visibilityState === 'visible') {
         syncData();
       }
@@ -46,14 +42,12 @@ export const useBackgroundSync = () => {
     };
   }, [user, syncData]);
 
-  // Synchronisation lors du retour de focus sur l'onglet
+  // Sync when it's back on the tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       const currentVisibility = document.visibilityState;
       
-      // Si l'onglet devient visible après avoir été caché
       if (currentVisibility === 'visible' && lastVisibilityRef.current === 'hidden') {
-        // Attendre un peu pour laisser l'UI se stabiliser
         setTimeout(() => {
           syncData();
         }, 500);
@@ -69,10 +63,9 @@ export const useBackgroundSync = () => {
     };
   }, [syncData]);
 
-  // Synchronisation lors du focus de la fenêtre
+  // Sync when window focus
   useEffect(() => {
     const handleFocus = () => {
-      // Synchroniser si la fenêtre n'avait pas le focus depuis longtemps
       setTimeout(() => {
         syncData();
       }, 1000);
@@ -92,22 +85,20 @@ export const useBackgroundSync = () => {
 };
 
 /**
- * Hook pour détecter les changements de connexion réseau
+ * Switching network hook
  */
 export const useNetworkSync = () => {
   const { syncData } = useBackgroundSync();
 
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🌐 Connexion réseau rétablie, synchronisation...');
-      // Attendre un peu pour s'assurer que la connexion est stable
       setTimeout(() => {
         syncData();
       }, 2000);
     };
 
     const handleOffline = () => {
-      console.log('📴 Connexion réseau perdue');
+      console.log('Network connection lost');
     };
 
     window.addEventListener('online', handleOnline);

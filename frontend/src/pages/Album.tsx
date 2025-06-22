@@ -122,12 +122,12 @@ const Album: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-pulse">
-              <div className="w-64 h-64 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6"></div>
-              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-4"></div>
-              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+          <div className="flex items-center justify-center py-8 sm:py-16">
+            <div className="animate-pulse text-center">
+              <div className="w-48 h-48 sm:w-64 sm:h-64 bg-gray-300 dark:bg-gray-700 rounded-lg mb-4 sm:mb-6 mx-auto"></div>
+              <div className="h-6 sm:h-8 bg-gray-300 dark:bg-gray-700 rounded w-36 sm:w-48 mb-3 sm:mb-4 mx-auto"></div>
+              <div className="h-4 sm:h-6 bg-gray-300 dark:bg-gray-700 rounded w-24 sm:w-32 mx-auto"></div>
             </div>
           </div>
         </div>
@@ -138,22 +138,23 @@ const Album: React.FC = () => {
   if (!album) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/library')}
-            className="mb-6 flex items-center text-gray-600 dark:text-gray-300"
+            className="mb-4 sm:mb-6 flex items-center text-gray-600 dark:text-gray-300"
           >
             <FiArrowLeft className="w-4 h-4 mr-2" />
-            Retour à la bibliothèque
+            <span className="hidden sm:inline">Retour à la bibliothèque</span>
+            <span className="sm:hidden">Retour</span>
           </Button>
-          <div className="text-center py-16">
-            <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+          <div className="text-center py-8 sm:py-16 px-4">
+            <LogoIcon className="w-12 h-12 sm:w-16 sm:h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
               Album introuvable
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               L'album demandé n'existe pas ou a été supprimé.
             </p>
           </div>
@@ -164,23 +165,24 @@ const Album: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Back button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/library')}
-          className="mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+          className="mb-4 sm:mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
         >
           <FiArrowLeft className="w-4 h-4 mr-2" />
-          Retour à la bibliothèque
+          <span className="hidden sm:inline">Retour à la bibliothèque</span>
+          <span className="sm:hidden">Retour</span>
         </Button>
 
         {/* Album header */}
-        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 mb-6 md:mb-8">
           {/* Album cover */}
           <div className="flex-shrink-0">
-            <div className="w-64 h-64 lg:w-80 lg:h-80 mx-auto lg:mx-0 relative group">
+            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 mx-auto md:mx-0 relative group">
               {coverUrl ? (
                 <img
                   src={coverUrl}
@@ -189,34 +191,34 @@ const Album: React.FC = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-lg shadow-lg flex items-center justify-center">
-                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400" />
+                  <LogoIcon className="w-12 h-12 sm:w-16 sm:h-16 fill-gray-500 dark:fill-gray-400" />
                 </div>
               )}
             </div>
           </div>
 
           {/* Album info */}
-          <div className="flex-grow text-center lg:text-left">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+          <div className="flex-grow text-center md:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Album
             </p>
-            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 leading-tight px-2 md:px-0">
               {album.name}
             </h1>
-            <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 text-gray-600 dark:text-gray-300 mb-6">
-              <span className="font-medium text-lg">{album.artist}</span>
+            <div className="flex flex-col md:flex-row md:items-center gap-1 sm:gap-2 md:gap-4 text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 md:mb-6 px-2 md:px-0">
+              <span className="font-medium text-base sm:text-lg">{album.artist}</span>
               {albumStats && (
                 <>
                   {album.year && (
-                    <span className="hidden lg:block text-gray-400">•</span>
+                    <span className="hidden md:block text-gray-400">•</span>
                   )}
                   {album.year && <span>{album.year}</span>}
-                  <span className="hidden lg:block text-gray-400">•</span>
+                  <span className="hidden md:block text-gray-400">•</span>
                   <span>{albumStats.trackCount} titre{albumStats.trackCount > 1 ? 's' : ''}</span>
-                  <span className="hidden lg:block text-gray-400">•</span>
+                  <span className="hidden md:block text-gray-400">•</span>
                   <span>{albumStats.totalDuration}</span>
-                  <span className="hidden lg:block text-gray-400">•</span>
-                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-medium">
+                  <span className="hidden md:block text-gray-400">•</span>
+                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs sm:text-sm font-medium inline-block">
                     {albumStats.mainCodec}
                   </span>
                 </>
@@ -224,45 +226,46 @@ const Album: React.FC = () => {
             </div>
 
             {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start px-4 sm:px-0">
               <Button
                 variant="primary"
                 size="lg"
                 onClick={handlePlayAll}
-                className="flex items-center justify-center px-8"
+                className="flex items-center justify-center px-6 sm:px-8 w-full sm:w-auto"
               >
-                <FiPlay className="w-5 h-5 mr-2" />
+                <FiPlay className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Lire
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 onClick={handleShuffle}
-                className="flex items-center justify-center px-6"
+                className="flex items-center justify-center px-4 sm:px-6 w-full sm:w-auto"
               >
-                <FiShuffle className="w-5 h-5 mr-2" />
-                Lecture aléatoire
+                <FiShuffle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="hidden sm:inline">Lecture aléatoire</span>
+                <span className="sm:hidden">Aléatoire</span>
               </Button>
               <Button
                 variant="ghost"
                 size="lg"
-                className="flex items-center justify-center px-4"
+                className="flex items-center justify-center px-4 w-full sm:w-auto"
               >
-                <FiMoreHorizontal className="w-5 h-5" />
+                <FiMoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
           </div>
         </div>
 
         {/* Track list */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
           {/* Header */}
-          <div className="px-6 py-4 border-b dark:border-gray-700">
-            <div className="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              <div className="w-8 text-center">#</div>
-              <div className="flex-1 ml-4">Titre</div>
-              <div className="w-32 text-center">
-                <FiClock className="w-4 h-4 mx-auto" />
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b dark:border-gray-700">
+            <div className="flex items-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <div className="w-6 sm:w-8 text-center">#</div>
+              <div className="flex-1 ml-2 sm:ml-4">Titre</div>
+              <div className="w-16 sm:w-32 text-center">
+                <FiClock className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" />
               </div>
             </div>
           </div>
@@ -272,31 +275,31 @@ const Album: React.FC = () => {
             {album.tracks.map((track, index) => (
               <div
                 key={track.id}
-                className="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group"
+                className="px-3 sm:px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group"
                 onClick={() => handleTrackPlay(track)}
               >
                 <div className="flex items-center">
-                  <div className="w-8 text-center">
-                    <span className="text-gray-500 dark:text-gray-400 group-hover:hidden text-sm">
+                  <div className="w-6 sm:w-8 text-center flex-shrink-0">
+                    <span className="text-gray-500 dark:text-gray-400 group-hover:hidden text-xs sm:text-sm">
                       {track.metadata?.track_number || index + 1}
                     </span>
-                    <FiPlay className="w-4 h-4 text-gray-600 dark:text-gray-300 hidden group-hover:block mx-auto" />
+                    <FiPlay className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300 hidden group-hover:block mx-auto" />
                   </div>
                   
-                  <div className="flex-1 ml-4 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                  <div className="flex-1 ml-2 sm:ml-4 min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-white truncate text-sm sm:text-base">
                       {track.metadata?.title || track.original_filename.replace(/\.[^/.]+$/, "")}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
                       {track.metadata?.artist || 'Artiste inconnu'}
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 flex-shrink-0">
+                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
                       {track.file_type.toUpperCase()}
                     </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {formatDuration(track.duration)}
                     </span>
                   </div>
