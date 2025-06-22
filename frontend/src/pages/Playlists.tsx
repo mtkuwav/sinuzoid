@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { FiPlus, FiLoader, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { usePlaylistData } from '../hooks/usePlaylist';
 import { Playlist } from '../types/playlist';
@@ -7,9 +8,21 @@ import { Button, Alert } from '../components/ui';
 
 const Playlists: React.FC = () => {
   const { playlists, isLoading, error, refetch } = usePlaylistData();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [deletingPlaylist, setDeletingPlaylist] = useState<Playlist | null>(null);
+
+  // Check if we should open the create modal based on URL params
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreateModal(true);
+      // Remove the parameter from URL after opening the modal
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('create');
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleCreateSuccess = () => {
     // Modal will close automatically, playlists will be updated via the store

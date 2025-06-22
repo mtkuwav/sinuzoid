@@ -196,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={() => {
                     onClose?.();
-                    navigate('/playlists');
+                    navigate('/playlists?create=true');
                   }}
                   className="w-full flex items-center px-3 py-2 mb-2 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
