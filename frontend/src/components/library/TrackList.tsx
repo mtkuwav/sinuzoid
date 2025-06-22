@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiCalendar, FiPlay, FiMoreVertical, FiPlus } from 'react-icons/fi';
+import { FiUser, FiCalendar, FiPlay } from 'react-icons/fi';
 import { Track } from '../../hooks/useTracks';
 import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 import { useMusicImages, useMusicUtils } from '../../hooks/useMusicStore';
-import { AddToPlaylistModal } from '../playlists';
+import { TrackMenu } from '../tracks';
 
 interface TrackListProps {
   tracks: Track[];
@@ -18,7 +18,6 @@ const TrackItem: React.FC<{
   showAddToPlaylist?: boolean;
 }> = ({ track, index, onTrackPlay, showAddToPlaylist = true }) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const { getThumbnailUrl } = useMusicImages();
   const { formatDuration } = useMusicUtils();
   
@@ -106,28 +105,11 @@ const TrackItem: React.FC<{
         </div>
 
         {/* Actions */}
-        <div className="col-span-1 flex justify-end space-x-1">
-          {showAddToPlaylist && (
-            <button
-              onClick={() => setShowAddToPlaylistModal(true)}
-              className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200"
-              title="Ajouter à une playlist"
-            >
-              <FiPlus className="w-4 h-4" />
-            </button>
-          )}
-          <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <FiMoreVertical className="w-4 h-4" />
-          </button>
-          
-          {/* Add to Playlist Modal */}
-          {showAddToPlaylistModal && (
-            <AddToPlaylistModal
-              isOpen={showAddToPlaylistModal}
-              onClose={() => setShowAddToPlaylistModal(false)}
-              track={track}
-            />
-          )}
+        <div className="col-span-1 flex justify-end">
+          <TrackMenu 
+            track={track} 
+            showAddToPlaylist={showAddToPlaylist}
+          />
         </div>
       </div>
     </div>

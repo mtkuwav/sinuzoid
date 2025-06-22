@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { FiArrowLeft, FiPlay, FiShuffle, FiMoreHorizontal, FiClock } from 'react-icons/fi';
+import { FiArrowLeft, FiPlay, FiShuffle, FiMoreHorizontal, FiClock, FiTrash2 } from 'react-icons/fi';
 import { Track } from '../hooks/useTracks';
-import { useMusicData, useMusicImages, useMusicUtils } from '../hooks/useMusicStore';
+import { useMusicData, useMusicImages, useMusicUtils, useMusicDeletion } from '../hooks/useMusicStore';
 import { Button } from '../components/ui';
+import { TrackMenu, DeleteAlbumModal } from '../components/tracks';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Album: React.FC = () => {
@@ -12,7 +13,9 @@ const Album: React.FC = () => {
   const { albums, isLoading } = useMusicData();
   const { getThumbnailUrl, getCoverUrl } = useMusicImages();
   const { formatDuration } = useMusicUtils();
+  const { handleAlbumDeleted } = useMusicDeletion();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [showDeleteAlbumModal, setShowDeleteAlbumModal] = useState(false);
 
   const album = useMemo(() => {
     if (!albumName) return null;
@@ -116,6 +119,13 @@ const Album: React.FC = () => {
     if (album?.tracks.length) {
       const randomIndex = Math.floor(Math.random() * album.tracks.length);
       handleTrackPlay(album.tracks[randomIndex]);
+    }
+  };
+
+  const handleDeleteAlbumSuccess = () => {
+    if (album) {
+      handleAlbumDeleted(album.name);
+      navigate('/library');
     }
   };
 
@@ -253,12 +263,24 @@ const Album: React.FC = () => {
               >
                 <FiMoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
+              {album?.name !== 'Singles and miscellaneous tracks' && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setShowDeleteAlbumModal(true)}
+                  className="flex items-center justify-center px-4 w-full sm:w-auto text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                >
+                  <FiTrash2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="hidden sm:inline">Supprimer l'album</span>
+                  <span className="sm:hidden">Supprimer</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Track list */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-visible mb-20">
           {/* Header */}
           <div className="px-3 sm:px-6 py-3 sm:py-4 border-b dark:border-gray-700">
             <div className="flex items-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -271,11 +293,11 @@ const Album: React.FC = () => {
           </div>
 
           {/* Tracks */}
-          <div className="divide-y dark:divide-gray-700">
+          <div className="divide-y dark:divide-gray-700 overflow-visible relative">
             {album.tracks.map((track, index) => (
               <div
                 key={track.id}
-                className="px-3 sm:px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group"
+                className="px-3 sm:px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group relative"
                 onClick={() => handleTrackPlay(track)}
               >
                 <div className="flex items-center">
@@ -302,12 +324,23 @@ const Album: React.FC = () => {
                     <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {formatDuration(track.duration)}
                     </span>
+                    <div className="flex items-center">
+                      <TrackMenu track={track} />
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Delete Album Modal */}
+        <DeleteAlbumModal
+          isOpen={showDeleteAlbumModal}
+          onClose={() => setShowDeleteAlbumModal(false)}
+          album={album}
+          onSuccess={handleDeleteAlbumSuccess}
+        />
       </div>
     </div>
   );

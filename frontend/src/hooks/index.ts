@@ -1,5 +1,5 @@
 // Hooks principaux pour la gestion de la musique avec Zustand
-export { useMusicData, useMusicImages, useMusicUtils } from './useMusicStore';
+export { useMusicData, useMusicImages, useMusicUtils, useMusicDeletion } from './useMusicStore';
 
 // Hooks pour les playlists
 export { 

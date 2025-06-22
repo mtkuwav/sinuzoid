@@ -50,6 +50,11 @@ interface MusicState {
   forceFetch: () => Promise<void>;
   shouldRefetch: () => boolean;
   
+  // Track deletion
+  deleteTrack: (trackId: string) => void;
+  deleteAllTracks: () => void;
+  deleteAlbum: (albumName: string) => void;
+  
   // Reset state
   reset: () => void;
 }
@@ -384,6 +389,56 @@ export const useMusicStore = create<MusicState>()(
             error: error instanceof Error ? error.message : 'Une erreur est survenue'
           });
         }
+      },
+
+      // Track deletion methods
+      deleteTrack: (trackId: string) => {
+        const state = get();
+        
+        // Remove track from tracks array
+        const updatedTracks = state.tracks.filter(track => track.id !== trackId);
+        
+        // Update albums by removing the track and filtering empty albums
+        const updatedAlbums = state.albums.map(album => ({
+          ...album,
+          tracks: album.tracks.filter(track => track.id !== trackId)
+        })).filter(album => album.tracks.length > 0);
+        
+        set({
+          tracks: updatedTracks,
+          albums: updatedAlbums,
+          totalTracks: updatedTracks.length
+        });
+      },
+
+      deleteAllTracks: () => {
+        set({
+          tracks: [],
+          albums: [],
+          totalTracks: 0
+        });
+      },
+
+      deleteAlbum: (albumName: string) => {
+        const state = get();
+        
+        // Get track IDs from the album
+        const albumToDelete = state.albums.find(album => album.name === albumName);
+        if (!albumToDelete) return;
+        
+        const trackIdsToDelete = new Set(albumToDelete.tracks.map(track => track.id));
+        
+        // Remove tracks from tracks array
+        const updatedTracks = state.tracks.filter(track => !trackIdsToDelete.has(track.id));
+        
+        // Remove album from albums array
+        const updatedAlbums = state.albums.filter(album => album.name !== albumName);
+        
+        set({
+          tracks: updatedTracks,
+          albums: updatedAlbums,
+          totalTracks: updatedTracks.length
+        });
       },
 
       // Reset store

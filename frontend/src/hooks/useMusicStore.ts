@@ -223,3 +223,33 @@ export const useMusicUtils = () => {
     formatFileSize
   };
 };
+
+/**
+ * Hook pour les opérations de suppression de tracks
+ */
+export const useMusicDeletion = () => {
+  const { deleteTrack, deleteAllTracks, deleteAlbum, forceFetch } = useMusicStore();
+
+  const handleTrackDeleted = (trackId: string) => {
+    deleteTrack(trackId);
+  };
+
+  const handleAllTracksDeleted = () => {
+    deleteAllTracks();
+  };
+
+  const handleAlbumDeleted = (albumName: string) => {
+    deleteAlbum(albumName);
+  };
+
+  const refreshAfterDeletion = () => {
+    forceFetch();
+  };
+
+  return {
+    handleTrackDeleted,
+    handleAllTracksDeleted,
+    handleAlbumDeleted,
+    refreshAfterDeletion
+  };
+};

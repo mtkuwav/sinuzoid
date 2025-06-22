@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { FiMusic, FiClock, FiHardDrive, FiPlay } from 'react-icons/fi';
 import { Track, Album } from '../../hooks/useTracks';
 import { useMusicImages } from '../../hooks/useMusicStore';
+import { AlbumMenu } from '../tracks';
 import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 interface AlbumCardProps {
@@ -87,11 +88,11 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   
   return (
     <div 
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer group"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-lg cursor-pointer group relative"
       onClick={handleAlbumClick}
     >
       {/* Album cover */}
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg">
         {thumbnailUrl ? (
           <img
             src={thumbnailUrl}
@@ -134,6 +135,17 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             {getMainCodec()}
           </span>
         </div>
+      </div>
+
+      {/* Album Menu - positioned outside the cover container to avoid overflow issues */}
+      <div className="absolute top-2 left-2">
+        <AlbumMenu 
+          album={album}
+          onAlbumDeleted={() => {
+            // The parent component (Library) will handle the refresh via the store
+            console.log(`Album ${album.name} deleted`);
+          }}
+        />
       </div>
 
       {/* Album info */}

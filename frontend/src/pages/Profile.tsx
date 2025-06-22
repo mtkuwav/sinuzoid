@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FiUser, FiMail, FiShield, FiEdit3, FiLock } from 'react-icons/fi';
+import { FiUser, FiMail, FiShield, FiEdit3, FiLock, FiTrash2 } from 'react-icons/fi';
 import { Button, PasswordInput, Alert, Card } from '../components/ui';
 import { StorageInfo } from '../components/common';
+import { DeleteAllTracksModal } from '../components/tracks';
+import { useMusicData, useMusicDeletion } from '../hooks';
 
 interface PasswordForm {
   currentPassword: string;
@@ -12,7 +14,10 @@ interface PasswordForm {
 
 const Profile = () => {
   const { user, changePassword } = useAuth();
+  const { tracks } = useMusicData();
+  const { handleAllTracksDeleted } = useMusicDeletion();
   const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>({
     currentPassword: '',
     newPassword: '',
@@ -111,6 +116,12 @@ const Profile = () => {
     setSuccess(null);
   };
 
+  const handleDeleteAllSuccess = (deletedCount: number) => {
+    handleAllTracksDeleted();
+    setSuccess(`${deletedCount} morceau${deletedCount !== 1 ? 's' : ''} supprimé${deletedCount !== 1 ? 's' : ''} avec succès !`);
+    setShowDeleteAllModal(false);
+  };
+
   const ProfileInfoCard = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
     <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
       <div className="w-5 h-5 text-gray-500 mr-3">
@@ -184,6 +195,44 @@ const Profile = () => {
           <div className="mb-8">
             <StorageInfo />
           </div>
+
+          {/* Danger Zone - Delete All Tracks */}
+          {tracks.length > 0 && (
+            <div className="mb-8 border-t border-gray-200 dark:border-gray-600 pt-8">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
+                      Zone de danger
+                    </h3>
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                      Actions irréversibles qui affecteront définitivement vos données
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="border-t border-red-200 dark:border-red-800 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-red-800 dark:text-red-200">
+                        Supprimer toute ma bibliothèque musicale
+                      </h4>
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                        Supprime définitivement tous vos morceaux ({tracks.length} fichier{tracks.length !== 1 ? 's' : ''})
+                      </p>
+                    </div>
+                    <Button variant='danger'
+                      onClick={() => setShowDeleteAllModal(true)}
+                      className="bg-red-600 hover:bg-red-700 text-white flex items-center"
+                    >
+                      <FiTrash2 className="w-4 h-4 mr-2" />
+                      Supprimer tout
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Password Section */}
           <div className="border-t border-gray-200 dark:border-gray-600 pt-8">
@@ -271,6 +320,14 @@ const Profile = () => {
             )}
           </div>
         </Card>
+
+        {/* Delete All Tracks Modal */}
+        <DeleteAllTracksModal
+          isOpen={showDeleteAllModal}
+          onClose={() => setShowDeleteAllModal(false)}
+          trackCount={tracks.length}
+          onSuccess={handleDeleteAllSuccess}
+        />
       </div>
     </div>
   );
