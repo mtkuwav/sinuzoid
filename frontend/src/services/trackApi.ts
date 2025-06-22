@@ -34,7 +34,7 @@ class TrackApiService {
    * Delete all tracks for the current user
    */
   async deleteAllTracks(): Promise<{ message: string; deleted_count: number }> {
-    const response = await fetch(`${API_BASE_URL}/files/audio/all`, {
+    const response = await fetch(`${API_BASE_URL}/files/tracks/all`, {
       method: 'DELETE',
       headers: this.getAuthHeaders()
     });
