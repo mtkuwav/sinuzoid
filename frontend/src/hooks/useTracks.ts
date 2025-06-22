@@ -63,6 +63,27 @@ export const useTracks = () => {
     };
   };
 
+  // const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  //   const token = sessionStorage.getItem('access_token');
+    
+  //   const response = await fetch(url, {
+  //     ...options,
+  //     headers: {
+  //       'Authorization': `Bearer ${token}`,
+  //       'Content-Type': 'application/json',
+  //       ...options.headers
+  //     }
+  //   });
+
+  //   // If token is expired, let the auth context handle it
+  //   if (response.status === 401) {
+  //     // This will trigger the auth context to refresh the token
+  //     throw new Error('Token expired or invalid');
+  //   }
+
+  //   return response;
+  // };
+
   const fetchTracks = async () => {
     if (!user) return;
 
@@ -216,6 +237,44 @@ export const useTracks = () => {
     }
   };
 
+  const getCoverUrl = async (coverPath?: string): Promise<string | null> => {
+    if (!coverPath) return null;
+    
+    // Extract filename from path
+    const filename = coverPath.split('/').pop();
+    if (!filename) return null;
+    
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+      console.warn('No access token found');
+      return null;
+    }
+    
+    try {
+      // Use the original cover path for better quality
+      const url = `${API_BASE_URL}/files/cover/${filename}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        return blobUrl;
+      } else {
+        console.warn(`Error ${response.status} loading ${filename}:`, response.statusText);
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn(`Error loading cover ${filename}:`, error);
+      return null;
+    }
+  };
+
   const formatDuration = (duration: string) => {
     try {
       // Handle ISO 8601 duration format (PT3M45S) from timedelta
@@ -268,13 +327,18 @@ export const useTracks = () => {
   };
 
   useEffect(() => {
-    fetchTracks();
+    // Only fetch on initial load when user is authenticated
+    // and we don't have data yet
+    if (user && state.tracks.length === 0 && !state.error) {
+      fetchTracks();
+    }
   }, [user]);
 
   return {
     ...state,
     refetch: fetchTracks,
     getThumbnailUrl,
+    getCoverUrl,
     formatDuration,
     formatFileSize
   };

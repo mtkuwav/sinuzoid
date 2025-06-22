@@ -59,4 +59,5 @@ tests/
 # other
 
 *backups/
+*.backup.*
 .github/

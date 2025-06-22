@@ -1,0 +1,312 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { FiArrowLeft, FiPlay, FiShuffle, FiMoreHorizontal, FiClock, FiMusic } from 'react-icons/fi';
+import { Track } from '../hooks/useTracks';
+import { useMusicData, useMusicImages, useMusicUtils } from '../hooks/useMusicStore';
+import { Button } from '../components/ui';
+
+const Album: React.FC = () => {
+  const { albumName } = useParams<{ albumName: string }>();
+  const navigate = useNavigate();
+  const { albums, isLoading } = useMusicData();
+  const { getThumbnailUrl, getCoverUrl } = useMusicImages();
+  const { formatDuration } = useMusicUtils();
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+
+  const album = useMemo(() => {
+    if (!albumName) return null;
+    const decodedAlbumName = decodeURIComponent(albumName);
+    return albums.find(a => a.name === decodedAlbumName) || null;
+  }, [albums, albumName]);
+
+  useEffect(() => {
+    const loadCover = async () => {
+      if (album?.cover_thumbnail_path) {
+        // Try to get the original cover first, fallback to thumbnail
+        const originalCover = album.tracks.find(t => t.cover_path)?.cover_path;
+        if (originalCover) {
+          const url = await getCoverUrl(originalCover);
+          if (url) {
+            setCoverUrl(url);
+            return;
+          }
+        }
+        // Fallback to thumbnail
+        const url = await getThumbnailUrl(album.cover_thumbnail_path);
+        setCoverUrl(url);
+      }
+    };
+    loadCover();
+  }, [album, getThumbnailUrl, getCoverUrl]);
+
+  const getMainCodec = () => {
+    if (!album) return '';
+    
+    // Get the most common file type in the album
+    const codecCounts = album.tracks.reduce((acc, track) => {
+      const codec = track.file_type.toUpperCase();
+      acc[codec] = (acc[codec] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(codecCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'UNKNOWN';
+  };
+
+  const albumStats = useMemo(() => {
+    if (!album) return null;
+
+    const totalDurationSeconds = album.tracks.reduce((total, track) => {
+      // Handle both ISO 8601 (PT3M45S) and standard (MM:SS) formats
+      if (track.duration.startsWith('PT') || track.duration.startsWith('P')) {
+        const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
+        const match = track.duration.match(regex);
+        
+        if (match) {
+          const hours = parseInt(match[1] || '0');
+          const minutes = parseInt(match[2] || '0');
+          const seconds = Math.floor(parseFloat(match[3] || '0'));
+          return total + (hours * 3600) + (minutes * 60) + seconds;
+        }
+      } else {
+        const parts = track.duration.split(':');
+        let seconds = 0;
+        if (parts.length === 3) {
+          seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+        } else if (parts.length === 2) {
+          seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+        return total + seconds;
+      }
+      return total;
+    }, 0);
+
+    const formatTotalDuration = (totalSeconds: number) => {
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      
+      if (hours > 0) {
+        return `${hours} h ${minutes} min`;
+      } else {
+        return `${minutes} min`;
+      }
+    };
+
+    return {
+      trackCount: album.tracks.length,
+      totalDuration: formatTotalDuration(totalDurationSeconds),
+      year: album.year,
+      mainCodec: getMainCodec()
+    };
+  }, [album]);
+
+  const handleTrackPlay = (track: Track) => {
+    console.log('Playing track:', track);
+    // TODO: Implement track playing functionality
+  };
+
+  const handlePlayAll = () => {
+    if (album?.tracks.length) {
+      handleTrackPlay(album.tracks[0]);
+    }
+  };
+
+  const handleShuffle = () => {
+    if (album?.tracks.length) {
+      const randomIndex = Math.floor(Math.random() * album.tracks.length);
+      handleTrackPlay(album.tracks[randomIndex]);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-pulse">
+              <div className="w-64 h-64 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6"></div>
+              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-4"></div>
+              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!album) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/library')}
+            className="mb-6 flex items-center text-gray-600 dark:text-gray-300"
+          >
+            <FiArrowLeft className="w-4 h-4 mr-2" />
+            Retour à la bibliothèque
+          </Button>
+          <div className="text-center py-16">
+            <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+              Album introuvable
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              L'album demandé n'existe pas ou a été supprimé.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/library')}
+          className="mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+        >
+          <FiArrowLeft className="w-4 h-4 mr-2" />
+          Retour à la bibliothèque
+        </Button>
+
+        {/* Album header */}
+        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+          {/* Album cover */}
+          <div className="flex-shrink-0">
+            <div className="w-64 h-64 lg:w-80 lg:h-80 mx-auto lg:mx-0 relative group">
+              {coverUrl ? (
+                <img
+                  src={coverUrl}
+                  alt={`Couverture de ${album.name}`}
+                  className="w-full h-full object-cover rounded-lg shadow-lg"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-lg shadow-lg flex items-center justify-center">
+                  <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Album info */}
+          <div className="flex-grow text-center lg:text-left">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              Album
+            </p>
+            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              {album.name}
+            </h1>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 text-gray-600 dark:text-gray-300 mb-6">
+              <span className="font-medium text-lg">{album.artist}</span>
+              {albumStats && (
+                <>
+                  {album.year && (
+                    <span className="hidden lg:block text-gray-400">•</span>
+                  )}
+                  {album.year && <span>{album.year}</span>}
+                  <span className="hidden lg:block text-gray-400">•</span>
+                  <span>{albumStats.trackCount} titre{albumStats.trackCount > 1 ? 's' : ''}</span>
+                  <span className="hidden lg:block text-gray-400">•</span>
+                  <span>{albumStats.totalDuration}</span>
+                  <span className="hidden lg:block text-gray-400">•</span>
+                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-medium">
+                    {albumStats.mainCodec}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handlePlayAll}
+                className="flex items-center justify-center px-8"
+              >
+                <FiPlay className="w-5 h-5 mr-2" />
+                Lire
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleShuffle}
+                className="flex items-center justify-center px-6"
+              >
+                <FiShuffle className="w-5 h-5 mr-2" />
+                Lecture aléatoire
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="flex items-center justify-center px-4"
+              >
+                <FiMoreHorizontal className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Track list */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700">
+          {/* Header */}
+          <div className="px-6 py-4 border-b dark:border-gray-700">
+            <div className="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <div className="w-8 text-center">#</div>
+              <div className="flex-1 ml-4">Titre</div>
+              <div className="w-32 text-center">
+                <FiClock className="w-4 h-4 mx-auto" />
+              </div>
+            </div>
+          </div>
+
+          {/* Tracks */}
+          <div className="divide-y dark:divide-gray-700">
+            {album.tracks.map((track, index) => (
+              <div
+                key={track.id}
+                className="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group"
+                onClick={() => handleTrackPlay(track)}
+              >
+                <div className="flex items-center">
+                  <div className="w-8 text-center">
+                    <span className="text-gray-500 dark:text-gray-400 group-hover:hidden text-sm">
+                      {track.metadata?.track_number || index + 1}
+                    </span>
+                    <FiPlay className="w-4 h-4 text-gray-600 dark:text-gray-300 hidden group-hover:block mx-auto" />
+                  </div>
+                  
+                  <div className="flex-1 ml-4 min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                      {track.metadata?.title || track.original_filename.replace(/\.[^/.]+$/, "")}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {track.metadata?.artist || 'Artiste inconnu'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
+                      {track.file_type.toUpperCase()}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {formatDuration(track.duration)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Album;

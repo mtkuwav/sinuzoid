@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { FiMusic, FiUser, FiCalendar, FiPlay, FiMoreVertical } from 'react-icons/fi';
 import { Track } from '../../hooks/useTracks';
+import { useMusicImages, useMusicUtils } from '../../hooks/useMusicStore';
 
 interface TrackListProps {
   tracks: Track[];
-  getThumbnailUrl: (thumbnailPath?: string) => Promise<string | null>;
-  formatDuration: (duration: string) => string;
   onTrackPlay?: (track: Track) => void;
 }
 
 const TrackItem: React.FC<{
   track: Track;
   index: number;
-  getThumbnailUrl: (thumbnailPath?: string) => Promise<string | null>;
-  formatDuration: (duration: string) => string;
   onTrackPlay?: (track: Track) => void;
-}> = ({ track, index, getThumbnailUrl, formatDuration, onTrackPlay }) => {
+}> = ({ track, index, onTrackPlay }) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const { getThumbnailUrl } = useMusicImages();
+  const { formatDuration } = useMusicUtils();
   
   useEffect(() => {
     const loadThumbnail = async () => {
@@ -114,8 +113,6 @@ const TrackItem: React.FC<{
 
 const TrackList: React.FC<TrackListProps> = ({
   tracks,
-  getThumbnailUrl,
-  formatDuration,
   onTrackPlay
 }) => {
   return (
@@ -138,8 +135,6 @@ const TrackList: React.FC<TrackListProps> = ({
             key={track.id}
             track={track}
             index={index}
-            getThumbnailUrl={getThumbnailUrl}
-            formatDuration={formatDuration}
             onTrackPlay={onTrackPlay}
           />
         ))}

@@ -217,6 +217,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     initAuth();
   }, []);
 
+  // Auto-refresh token before expiration
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkTokenExpiry = () => {
+      const expiry = sessionStorage.getItem('token_expiry');
+      if (expiry) {
+        const expiryTime = parseInt(expiry);
+        const now = Date.now();
+        const timeUntilExpiry = expiryTime - now;
+        
+        // Refresh token if it expires in less than 5 minutes
+        if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
+          refreshToken().catch(() => {
+            logout();
+          });
+        }
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiry();
+
+    // Check every minute
+    const interval = setInterval(checkTokenExpiry, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   const value: AuthContextType = {
     user,
     isAuthenticated,

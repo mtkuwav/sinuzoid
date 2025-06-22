@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { FiMusic, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import { useTracks, Track } from '../hooks/useTracks';
+import { FiMusic, FiAlertCircle, FiLoader, FiRefreshCw } from 'react-icons/fi';
+import { Track } from '../hooks/useTracks';
+import { useMusicData, useMusicUtils } from '../hooks/useMusicStore';
+import { useImagePreloader, useImageCleanup } from '../hooks/useImagePreloader';
 import { 
   AlbumCard, 
   TrackList, 
@@ -8,6 +10,8 @@ import {
   LibraryStats 
 } from '../components/library';
 import { Alert } from '../components/ui';
+import MusicStoreDebugger from '../components/debug/MusicStoreDebugger';
+import PerformanceIndicator from '../components/ui/PerformanceIndicator';
 
 const Library: React.FC = () => {
   const {
@@ -15,11 +19,14 @@ const Library: React.FC = () => {
     albums,
     isLoading,
     error,
-    getThumbnailUrl,
-    formatDuration,
-    formatFileSize,
     refetch
-  } = useTracks();
+  } = useMusicData();
+  
+  const { formatFileSize } = useMusicUtils();
+  
+  // Préchargement intelligent des images et cleanup automatique
+  useImagePreloader();
+  useImageCleanup();
 
   const [viewMode, setViewMode] = useState<'albums' | 'tracks'>('albums');
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +155,7 @@ const Library: React.FC = () => {
 
     return {
       totalTracks: tracks.length,
-      totalAlbums: albums.filter(album => album.name !== 'Singles et morceaux divers').length,
+      totalAlbums: albums.filter(album => album.name !== 'Singles and miscellaneous tracks').length,
       totalDuration: formatTotalDuration(totalDurationSeconds),
       totalSize: formatFileSize(totalSizeBytes)
     };
@@ -186,13 +193,25 @@ const Library: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-          Ma Bibliothèque
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Gérez et explorez votre collection musicale personnelle
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+            Ma Bibliothèque
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Gérez et explorez votre collection musicale personnelle
+          </p>
+        </div>
+        
+        {/* Refresh button */}
+        <button
+          onClick={refetch}
+          disabled={isLoading}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 self-start sm:self-auto"
+        >
+          <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>{isLoading ? 'Actualisation...' : 'Actualiser'}</span>
+        </button>
       </div>
 
       {/* Stats */}
@@ -230,13 +249,11 @@ const Library: React.FC = () => {
             // Vue Albums
             <div>
               {filteredAndSortedData.albums.length > 0 ? (
-                <div className="space-y-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                   {filteredAndSortedData.albums.map((album) => (
                     <AlbumCard
                       key={`${album.name}-${album.artist}`}
                       album={album}
-                      getThumbnailUrl={getThumbnailUrl}
-                      formatDuration={formatDuration}
                       formatFileSize={formatFileSize}
                       onTrackPlay={handleTrackPlay}
                     />
@@ -260,13 +277,10 @@ const Library: React.FC = () => {
           ) : (
             // Vue Titres
             <div>
-              {filteredAndSortedData.tracks.length > 0 ? (
-                <TrackList
-                  tracks={filteredAndSortedData.tracks}
-                  getThumbnailUrl={getThumbnailUrl}
-                  formatDuration={formatDuration}
-                  onTrackPlay={handleTrackPlay}
-                />
+              {filteredAndSortedData.tracks.length > 0 ? (              <TrackList
+                tracks={filteredAndSortedData.tracks}
+                onTrackPlay={handleTrackPlay}
+              />
               ) : (
                 <div className="text-center py-16">
                   <FiMusic className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
@@ -285,6 +299,12 @@ const Library: React.FC = () => {
           )}
         </div>
       )}
+      
+      {/* Indicateur de performance */}
+      <PerformanceIndicator />
+      
+      {/* Debugger pour le développement */}
+      <MusicStoreDebugger />
     </div>
   );
 };
