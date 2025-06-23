@@ -49,27 +49,39 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* GitHub Links */}
           <div className="col-span-1">
-            <h4 className="font-medium mb-4 text-gray-800 dark:text-white">Contact</h4>
+            <h4 className="font-medium mb-4 text-gray-800 dark:text-white">GitHub</h4>
             <ul className="space-y-2">
-              <li>Email: contact@sinuzoid.com</li>
-              <li>Téléphone: +33 1 23 45 67 89</li>
-              <li>Adresse: Paris, France</li>
+              <li>
+                <a 
+                  href="https://github.com/mtkuwav" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  Mon profil GitHub
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://github.com/mtkuwav/sinuzoid" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  Code source du projet
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Social Media & Theme Toggle */}
+          {/* Theme Toggle */}
           <div className="col-span-1">
-            <h4 className="font-medium mb-4 text-gray-800 dark:text-white">Suivez-nous</h4>
-            <div className="flex space-x-4 mb-4">
-              <a href="#" className="hover:text-blue-500 transition-colors">Facebook</a>
-              <a href="#" className="hover:text-blue-500 transition-colors">Twitter</a>
-              <a href="#" className="hover:text-blue-500 transition-colors">Instagram</a>
-            </div>
+            <h4 className="font-medium mb-4 text-gray-800 dark:text-white">Thème</h4>
             
             {/* Theme Toggle Button */}
-            <div className="mt-6">
+            <div className="mt-2">
               <button 
                 onClick={toggleDarkMode}
                 className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -83,9 +95,9 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Copyright */}
+        {/* Credits */}
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-6 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Sinuzoid. Tous droits réservés.</p>
+          <p>Créé par <a href="https://github.com/mtkuwav" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors">mtkuwav</a> • Sous licence GPLv3 • {new Date().getFullYear()}</p>
         </div>
       </div>
     </footer>

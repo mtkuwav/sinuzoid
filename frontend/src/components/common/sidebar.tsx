@@ -61,6 +61,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     { name: 'Upload', icon: <FiUpload />, path: '/upload' }
   ];
 
+  const userNavItems = [
+    isAuthenticated 
+      ? { name: 'Profil', icon: <FiUser />, path: '/profile' }
+      : { name: 'Connexion', icon: <FiUser />, path: '/login' }
+  ];
+
   // Adaptative CSS class depending on the context (mobile or desktop)
   const sidebarClasses = `
     top-16 z-40 overflow-y-auto
@@ -102,47 +108,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             </form>
           </div>
 
-          {/* Actions rapides - Surtout utile sur mobile */}
-          <div className="mb-6 md:hidden">
-            <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Actions
-            </h3>
-            <div className="grid grid-cols-2 gap-2 px-2">
-              <button 
-                onClick={() => {
-                  // TODO: Implémenter la recherche
-                  onClose?.();
-                }}
-                className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <FiSearch className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs text-gray-700 dark:text-gray-300">Rechercher</span>
-              </button>
-              {isAuthenticated ? (
-                <button 
-                  onClick={() => {
-                    navigate('/profile');
-                    onClose?.();
-                  }}
-                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <FiUser className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">Profil</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => {
-                    navigate('/login');
-                    onClose?.();
-                  }}
-                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <FiUser className="h-5 w-5 mb-1 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">Connexion</span>
-                </button>
-              )}
-            </div>
-          </div>
 
           {/* Navigation principale */}
           <nav className="mb-6">
@@ -236,6 +201,31 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </ul>
               </>
             )}
+          </div>
+
+          {/* Actions rapides - Surtout utile sur mobile */}
+          <div className="mb-6 md:hidden">
+            <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Compte
+            </h3>
+            <ul>
+              {userNavItems.map((item) => (
+                <li key={item.path} className="mb-1">
+                  <Link 
+                    to={item.path}
+                    onClick={onClose}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    <span>{item.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </aside>
