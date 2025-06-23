@@ -330,7 +330,7 @@ CREATE TABLE public.tracks (
     cover_path character varying(512),
     cover_thumbnail_path character varying(512),
     updated_at timestamp(0) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT tracks_file_type_check CHECK (((file_type)::text = ANY ((ARRAY['mp3'::character varying, 'wav'::character varying, 'flac'::character varying, 'ogg'::character varying, 'aac'::character varying])::text[])))
+    CONSTRAINT tracks_file_type_check CHECK (((file_type)::text = ANY ((ARRAY['mp3'::character varying, 'wav'::character varying, 'flac'::character varying, 'ogg'::character varying, 'aac'::character varying, 'm4a'::character varying])::text[])))
 );
 
 
