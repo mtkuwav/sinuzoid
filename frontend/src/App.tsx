@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import RecentlyAdded from './pages/RecentlyAdded';
 
 // Composant interne pour la synchronisation
 const AppWithSync = () => {
@@ -43,6 +44,7 @@ const AppWithSync = () => {
         <Route path="radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
         <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
         <Route path="playlists/:playlistId" element={<ProtectedRoute><PlaylistDetail /></ProtectedRoute>} />
+        <Route path="recently-added" element={<ProtectedRoute><RecentlyAdded /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         {/* Route 404 */}
         <Route path="*" element={<NotFound />} />
