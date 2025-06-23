@@ -203,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {/* Actions rapides - Surtout utile sur mobile */}
+          {/* Profile */}
           <div className="mb-6 md:hidden">
             <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Compte

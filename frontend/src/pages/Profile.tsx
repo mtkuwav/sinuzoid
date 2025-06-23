@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FiUser, FiMail, FiShield, FiEdit3, FiLock, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiMail, FiEdit3, FiLock, FiTrash2 } from 'react-icons/fi';
 import { Button, PasswordInput, Alert, Card } from '../components/ui';
 import { StorageInfo } from '../components/common';
 import { DeleteAllTracksModal } from '../components/tracks';
@@ -183,11 +183,6 @@ const Profile = () => {
                 label="Adresse email"
                 value={user.email}
               />
-              <ProfileInfoCard 
-                icon={<FiShield />}
-                label="Rôle"
-                value={user.role}
-              />
             </div>
           </div>
 
@@ -311,9 +306,6 @@ const Profile = () => {
                 <div className="flex-grow">
                   <p className="text-gray-600 dark:text-gray-300">
                     Votre mot de passe est sécurisé et chiffré
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Dernière modification : Non disponible
                   </p>
                 </div>
               </div>
