@@ -37,11 +37,9 @@ const Library: React.FC = () => {
   const { formatFileSize } = useMusicUtils();
   const { toggleTrack, playAlbum, playPlaylist } = useAudioPlayer();
   
-  // Préchargement intelligent des images et cleanup automatique
   useImagePreloader();
   useImageCleanup();
 
-  // Handlers pour les playlists
   const handlePlaylistPlay = (playlist: Playlist) => {
     if (playlist.tracks.length > 0) {
       playPlaylist(playlist, 0);
@@ -52,6 +50,19 @@ const Library: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('album');
 
+  const handleViewModeChange = (mode: 'albums' | 'tracks') => {
+    setViewMode(mode);
+    if (mode === 'albums') {
+      // Pour les albums, on scroll vers la section des albums après le changement de vue
+      setTimeout(() => {
+        const albumsSection = document.querySelector('.albums-section');
+        if (albumsSection) {
+          albumsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
+
   // Initialize state from navigation params if present
   useEffect(() => {
     if (location.state) {
@@ -60,7 +71,7 @@ const Library: React.FC = () => {
         setSearchQuery(navSearchQuery);
       }
       if (navViewMode) {
-        setViewMode(navViewMode);
+        handleViewModeChange(navViewMode);
       }
     }
   }, [location.state]);
@@ -73,6 +84,15 @@ const Library: React.FC = () => {
 
     if (view === 'tracks' || view === 'albums') {
       setViewMode(view);
+      if (view === 'albums') {
+        // Pour les albums, on scroll vers la section des albums après le rendu
+        setTimeout(() => {
+          const albumsSection = document.querySelector('.albums-section');
+          if (albumsSection) {
+            albumsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 500);
+      }
     }
 
     if (search) {
@@ -289,61 +309,10 @@ const Library: React.FC = () => {
         viewMode={viewMode}
         searchQuery={searchQuery}
         sortBy={sortBy}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
         onSearchChange={setSearchQuery}
         onSortChange={setSortBy}
       />
-
-      {/* Playlists Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              Mes Playlists
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/playlists')}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
-          >
-            Voir tout
-          </button>
-        </div>
-
-        {playlistsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <FiLoader className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
-          </div>
-        ) : playlists.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-            {playlists.slice(0, 5).map((playlist) => (
-              <PlaylistCard
-                key={playlist.id}
-                playlist={playlist}
-                onPlay={handlePlaylistPlay}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-            <div className="text-center">
-              <FiMusic className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Aucune playlist créée
-              </p>
-              <button
-                onClick={() => navigate('/playlists')}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-1"
-              >
-                Créer votre première playlist
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Content */}
       {isLoading ? (
@@ -357,60 +326,223 @@ const Library: React.FC = () => {
         </div>
       ) : (
         <div>
-          {viewMode === 'albums' ? (
-            // Vue Albums
-            <div className="pb-20">
-              {filteredAndSortedData.albums.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                  {filteredAndSortedData.albums.map((album, index) => (
-                    <AlbumCard
-                      key={`${album.name}-${album.artist}`}
-                      album={album}
-                      formatFileSize={formatFileSize}
-                      onTrackPlay={handleTrackPlay}
-                      onAlbumPlay={handleAlbumPlay}
-                      index={index}
-                      columnsCount={6}
-                    />
-                  ))}
+          {viewMode === 'tracks' ? (
+            <>
+              {/* Vue Titres - Section principale */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                      Mes Titres
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {filteredAndSortedData.tracks.length} titre{filteredAndSortedData.tracks.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-16">
-                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
-                    Aucun album trouvé
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {searchQuery 
-                      ? 'Aucun album ne correspond à votre recherche.'
-                      : 'Commencez par télécharger de la musique pour créer votre bibliothèque.'
-                    }
-                  </p>
+                {filteredAndSortedData.tracks.length > 0 ? (
+                  <TrackList
+                    tracks={filteredAndSortedData.tracks}
+                    onTrackPlay={handleTrackPlay}
+                  />
+                ) : (
+                  <div className="text-center py-16">
+                    <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                      Aucun titre trouvé
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {searchQuery 
+                        ? 'Aucun titre ne correspond à votre recherche.'
+                        : 'Commencez par télécharger de la musique pour créer votre bibliothèque.'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Albums Section - Vue réduite en mode tracks */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                      Mes Albums
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {stats.totalAlbums} album{stats.totalAlbums !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleViewModeChange('albums')}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
+                  >
+                    Voir tout
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {albums.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                    {albums.filter(album => album.name !== 'Singles and miscellaneous tracks').slice(0, 3).map((album, index) => (
+                      <AlbumCard
+                        key={`${album.name}-${album.artist}`}
+                        album={album}
+                        formatFileSize={formatFileSize}
+                        onTrackPlay={handleTrackPlay}
+                        onAlbumPlay={handleAlbumPlay}
+                        index={index}
+                        columnsCount={6}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="text-center">
+                      <FiMusic className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Aucun album dans votre bibliothèque
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Playlists Section - Vue réduite en mode tracks */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                      Mes Playlists
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/playlists')}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
+                  >
+                    Voir tout
+                  </button>
+                </div>
+
+                {playlists.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                    {playlists.slice(0, 3).map((playlist) => (
+                      <PlaylistCard
+                        key={playlist.id}
+                        playlist={playlist}
+                        onPlay={handlePlaylistPlay}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="text-center">
+                      <FiMusic className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Aucune playlist créée
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
-            // Vue Titres
-            <div>
-              {filteredAndSortedData.tracks.length > 0 ? (              <TrackList
-                tracks={filteredAndSortedData.tracks}
-                onTrackPlay={handleTrackPlay}
-              />
-              ) : (
-                <div className="text-center py-16">
-                  <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
-                    Aucun titre trouvé
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {searchQuery 
-                      ? 'Aucun titre ne correspond à votre recherche.'
-                      : 'Commencez par télécharger de la musique pour créer votre bibliothèque.'
-                    }
-                  </p>
+            <>
+              {/* Albums Section - Vue principale */}
+              <div className="mb-8 albums-section">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                      Mes Albums
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {stats.totalAlbums} album{stats.totalAlbums !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {albums.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 pb-20">
+                    {filteredAndSortedData.albums.map((album, index) => (
+                      <AlbumCard
+                        key={`${album.name}-${album.artist}`}
+                        album={album}
+                        formatFileSize={formatFileSize}
+                        onTrackPlay={handleTrackPlay}
+                        onAlbumPlay={handleAlbumPlay}
+                        index={index}
+                        columnsCount={6}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <LogoIcon className="w-16 h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                      Aucun album trouvé
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {searchQuery 
+                        ? 'Aucun album ne correspond à votre recherche.'
+                        : 'Commencez par télécharger de la musique pour créer votre bibliothèque.'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Playlists Section - Vue réduite en mode albums */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                      Mes Playlists
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/playlists')}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
+                  >
+                    Voir tout
+                  </button>
+                </div>
+
+                {playlistsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <FiLoader className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+                  </div>
+                ) : playlists.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                    {playlists.slice(0, 5).map((playlist) => (
+                      <PlaylistCard
+                        key={playlist.id}
+                        playlist={playlist}
+                        onPlay={handlePlaylistPlay}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="text-center">
+                      <FiMusic className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Aucune playlist créée
+                      </p>
+                      <button
+                        onClick={() => navigate('/playlists')}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-1"
+                      >
+                        Créer votre première playlist
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}

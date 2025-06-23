@@ -9,10 +9,8 @@ import { useBackgroundSync, useNetworkSync } from './hooks/useBackgroundSync';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Home from './pages/Home';
-import Discover from './pages/Discover';
 import Library from './pages/Library';
 import Album from './pages/Album';
-import Radio from './pages/Radio';
 import Playlists from './pages/Playlists';
 import PlaylistDetail from './pages/PlaylistDetail';
 import Upload from './pages/Upload';
@@ -37,11 +35,9 @@ const AppWithSync = () => {
       {/* Routes protégées */}
       <Route path="/" element={<Layout />}>
         <Route index element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
         <Route path="library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
         <Route path="album/:albumName" element={<ProtectedRoute><Album /></ProtectedRoute>} />
         <Route path="upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-        <Route path="radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
         <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
         <Route path="playlists/:playlistId" element={<ProtectedRoute><PlaylistDetail /></ProtectedRoute>} />
         <Route path="recently-added" element={<ProtectedRoute><RecentlyAdded /></ProtectedRoute>} />
