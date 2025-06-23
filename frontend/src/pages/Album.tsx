@@ -161,7 +161,7 @@ const Album: React.FC = () => {
           </Button>
           <div className="text-center py-8 sm:py-16 px-4">
             <LogoIcon className="w-12 h-12 sm:w-16 sm:h-16 fill-gray-500 dark:fill-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+            <h3 className="font-heading text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
               Album introuvable
             </h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
@@ -212,7 +212,7 @@ const Album: React.FC = () => {
             <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Album
             </p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 leading-tight px-2 md:px-0">
+            <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 leading-tight px-2 md:px-0">
               {album.name}
             </h1>
             <div className="flex flex-col md:flex-row md:items-center gap-1 sm:gap-2 md:gap-4 text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 md:mb-6 px-2 md:px-0">

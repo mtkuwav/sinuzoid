@@ -10,4 +10,5 @@ export default defineConfig({
     tailwindcss(),
     svgr(),
   ],
+  assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2', '**/*.otf']
 })
