@@ -10,12 +10,16 @@ interface AlbumCardProps {
   album: Album;
   formatFileSize: (bytes: number) => string;
   onTrackPlay?: (track: Track) => void;
+  index?: number;
+  columnsCount?: number;
 }
 
 const AlbumCard: React.FC<AlbumCardProps> = ({
   album,
   formatFileSize,
-  onTrackPlay
+  onTrackPlay,
+  index = 0,
+  columnsCount = 6
 }) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -85,6 +89,9 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   const handleAlbumClick = () => {
     navigate(`/album/${encodeURIComponent(album.name)}`);
   };
+
+  // Determine if this card is on the left side of the grid
+  const isLeftSide = (index % columnsCount) < (columnsCount / 2);
   
   return (
     <div 
@@ -138,9 +145,10 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
       </div>
 
       {/* Album Menu - positioned outside the cover container to avoid overflow issues */}
-      <div className="absolute top-2 left-2">
+      <div className="absolute top-2 left-2 z-[100000]">
         <AlbumMenu 
           album={album}
+          alignLeft={isLeftSide}
           onAlbumDeleted={() => {
             // The parent component (Library) will handle the refresh via the store
             console.log(`Album ${album.name} deleted`);

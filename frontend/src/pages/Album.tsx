@@ -5,6 +5,7 @@ import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicImages, useMusicUtils, useMusicDeletion } from '../hooks/useMusicStore';
 import { Button } from '../components/ui';
 import { TrackMenu, DeleteAlbumModal } from '../components/tracks';
+import { DownloadIconButton } from '../components/DownloadButton';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Album: React.FC = () => {
@@ -256,6 +257,13 @@ const Album: React.FC = () => {
                 <span className="hidden sm:inline">Lecture aléatoire</span>
                 <span className="sm:hidden">Aléatoire</span>
               </Button>
+              <div className="flex items-center justify-center w-full sm:w-auto">
+                <DownloadIconButton
+                  variant="album"
+                  albumName={album.name}
+                  className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg"
+                />
+              </div>
               <Button
                 variant="ghost"
                 size="lg"

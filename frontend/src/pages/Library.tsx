@@ -13,6 +13,7 @@ import {
 } from '../components/library';
 import { PlaylistCard } from '../components/playlists';
 import { Alert } from '../components/ui';
+import { DownloadIconButton } from '../components/DownloadButton';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const Library: React.FC = () => {
@@ -244,15 +245,21 @@ const Library: React.FC = () => {
           </p>
         </div>
         
-        {/* Refresh button */}
-        <button
-          onClick={refetch}
-          disabled={isLoading}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 self-start sm:self-auto"
-        >
-          <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>{isLoading ? 'Actualisation...' : 'Actualiser'}</span>
-        </button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          <DownloadIconButton
+            variant="all"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          />
+          <button
+            onClick={refetch}
+            disabled={isLoading}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200"
+          >
+            <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Actualisation...' : 'Actualiser'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -341,12 +348,14 @@ const Library: React.FC = () => {
             <div className="pb-20">
               {filteredAndSortedData.albums.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                  {filteredAndSortedData.albums.map((album) => (
+                  {filteredAndSortedData.albums.map((album, index) => (
                     <AlbumCard
                       key={`${album.name}-${album.artist}`}
                       album={album}
                       formatFileSize={formatFileSize}
                       onTrackPlay={handleTrackPlay}
+                      index={index}
+                      columnsCount={6}
                     />
                   ))}
                 </div>

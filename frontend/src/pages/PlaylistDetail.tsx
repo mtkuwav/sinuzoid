@@ -16,6 +16,7 @@ import { useMusicImages, useMusicUtils } from '../hooks/useMusicStore';
 import { Track } from '../hooks/useTracks';
 import { Button } from '../components/ui';
 import { PlaylistModal, DeletePlaylistModal, AddTracksToPlaylistModal } from '../components/playlists';
+import { DownloadIconButton } from '../components/DownloadButton';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
 
 const PlaylistDetail: React.FC = () => {
@@ -257,6 +258,14 @@ const PlaylistDetail: React.FC = () => {
                 <FiShuffle className="w-5 h-5 mr-2" />
                 Aléatoire
               </Button>
+              <div className="flex items-center justify-center">
+                <DownloadIconButton
+                  variant="playlist"
+                  playlistId={playlist.id}
+                  playlistName={playlist.name}
+                  className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg"
+                />
+              </div>
             </div>
           </div>
         </div>

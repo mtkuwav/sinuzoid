@@ -23,6 +23,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],  # Expose Content-Disposition header to frontend
 )
 
 # Include routers

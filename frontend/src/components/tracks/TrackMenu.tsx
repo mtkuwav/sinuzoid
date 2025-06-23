@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiMoreHorizontal, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiMoreHorizontal, FiTrash2, FiPlus, FiDownload } from 'react-icons/fi';
 import { Track } from '../../hooks/useTracks';
 import { DeleteTrackModal } from '../tracks';
 import { AddToPlaylistModal } from '../playlists';
+import { useDownload } from '../../hooks/useDownload';
 import { useMusicDeletion } from '../../hooks';
 
 interface TrackMenuProps {
@@ -22,6 +23,7 @@ const TrackMenu: React.FC<TrackMenuProps> = ({
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
   const menuRef = useRef<HTMLDivElement>(null);
   const { handleTrackDeleted } = useMusicDeletion();
+  const { downloadTrack } = useDownload();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,6 +74,12 @@ const TrackMenu: React.FC<TrackMenuProps> = ({
     setIsOpen(false);
   };
 
+  const handleDownloadClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await downloadTrack(track);
+    setIsOpen(false);
+  };
+
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isOpen) {
@@ -100,6 +108,13 @@ const TrackMenu: React.FC<TrackMenuProps> = ({
               Ajouter à une playlist
             </button>
           )}
+          <button
+            onClick={handleDownloadClick}
+            className="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+          >
+            <FiDownload className="w-4 h-4 mr-3" />
+            Télécharger
+          </button>
           <button
             onClick={handleDeleteClick}
             className="w-full px-4 py-2 text-sm text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
