@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { FiSearch, FiUser, FiMenu, FiLogOut } from 'react-icons/fi';
-import { useAuth } from '../../contexts/AuthContext';
+import { FiUser, FiMenu, FiLogOut, FiSearch } from 'react-icons/fi';
 import { Logo, Button } from '../ui';
+import { AudioPlayer } from '../player/AudioPlayer';
+import { useAuth } from '../../contexts/AuthContext';
 import GlobalSearch from './GlobalSearch';
 
 interface HeaderProps {
@@ -67,34 +68,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* Logo */}
           <Logo size="md" variant="both" linkTo="/" />
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(link.path)
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+          {/* Desktop: AudioPlayer au centre */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <AudioPlayer variant="headerCompact" />
+          </div>
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
-            {/* Search button - visible sur tous les écrans */}
+            {/* Bouton de recherche - visible sur desktop */}
             <Button 
-              variant="icon" 
+              variant="icon"
               size="md"
+              className="hidden md:block" 
               onClick={() => setIsSearchOpen(true)}
             >
               <FiSearch className="h-5 w-5" />
             </Button>
-            
+
             {/* Menu button - visible uniquement sur mobile */}
             <Button 
               variant="icon"

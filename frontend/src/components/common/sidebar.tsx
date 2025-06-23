@@ -31,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     playlists: true,
     recentlyAdded: false
   });
+  const [searchQuery, setSearchQuery] = useState<string>('');
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,12 +49,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     return location.pathname === path;
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      onClose?.();
+    }
+  };
+
   const mainNavItems = [
     { name: 'Accueil', icon: <FiHome />, path: '/' },
     { name: 'Découvrir', icon: <FiCompass />, path: '/discover' },
     { name: 'Bibliothèque', icon: <FiBookOpen />, path: '/library' },
     { name: 'Upload', icon: <FiUpload />, path: '/upload' },
-    { name: 'Radio', icon: <FiRadio />, path: '/radio' }
+    { name: 'Radio', icon: <FiRadio />, path: '/radio' },
+    { name: 'Playlists', icon: <FiList />, path: '/playlists' }
   ];
   
   const libraryItems = [
@@ -87,6 +97,21 @@ const Sidebar: React.FC<SidebarProps> = ({
       
       <aside className={sidebarClasses}>
         <div className="p-4">
+          {/* Section de recherche - Mobile uniquement */}
+          <div className="mb-6 md:hidden">
+            <form onSubmit={handleSearch} className="relative">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </form>
+          </div>
 
           {/* Actions rapides - Surtout utile sur mobile */}
           <div className="mb-6 md:hidden">
