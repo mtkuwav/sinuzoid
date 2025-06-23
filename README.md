@@ -57,10 +57,6 @@ Sinuzoid follows a microservices architecture with the following components:
 
 ### Database Setup
 
-The PostgreSQL database will be automatically created when starting the services. The database schema is automatically imported from `sinuzoid_database.sql`.
-
-#### Manual Database Setup (if needed)
-
 If you need to manually set up or reset the database:
 
 1. **Import the database schema**
