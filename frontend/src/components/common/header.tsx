@@ -49,9 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const navLinks = [
     { name: 'Accueil', path: '/' },
-    { name: 'Découvrir', path: '/discover' },
     { name: 'Bibliothèque', path: '/library' },
-    { name: 'Radio', path: '/radio' },
     { name: 'Playlists', path: '/playlists' }
   ];
 

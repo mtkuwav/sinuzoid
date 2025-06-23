@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { 
   FiHome, 
-  FiCompass, 
   FiBookOpen, 
-  FiRadio, 
   FiList, 
   FiPlus, 
-  FiHeart, 
   FiClock, 
-  FiDownload,
   FiSearch,
   FiUser,
   FiUpload
@@ -59,17 +55,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const mainNavItems = [
     { name: 'Accueil', icon: <FiHome />, path: '/' },
-    { name: 'Découvrir', icon: <FiCompass />, path: '/discover' },
     { name: 'Bibliothèque', icon: <FiBookOpen />, path: '/library' },
-    { name: 'Upload', icon: <FiUpload />, path: '/upload' },
-    { name: 'Radio', icon: <FiRadio />, path: '/radio' },
-    { name: 'Playlists', icon: <FiList />, path: '/playlists' }
-  ];
-  
-  const libraryItems = [
     { name: 'Récemment ajoutés', icon: <FiClock />, path: '/recently-added' },
-    { name: 'Morceaux favoris', icon: <FiHeart />, path: '/favorites' },
-    { name: 'Téléchargements', icon: <FiDownload />, path: '/downloads' },
+    { name: 'Playlists', icon: <FiList />, path: '/playlists' },
+    { name: 'Upload', icon: <FiUpload />, path: '/upload' }
   ];
 
   // Adaptative CSS class depending on the context (mobile or desktop)
@@ -177,31 +166,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             </ul>
           </nav>
 
-          {/* Ma Bibliothèque */}
-          <div className="mb-6">
-            <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Ma Bibliothèque
-            </h3>
-            <ul>
-              {libraryItems.map((item) => (
-                <li key={item.path} className="mb-1">
-                  <Link 
-                    to={item.path}
-                    onClick={onClose}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
-                  >
-                    <span className="mr-3">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* Playlists */}
           <div className="mb-6">
             <div 
@@ -209,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => toggleSection('playlists')}
             >
               <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Playlists
+                Mes Playlists
               </h3>
               <span className={`transform transition-transform ${expandedSections.playlists ? 'rotate-180' : ''}`}>
                 ▾
