@@ -19,6 +19,7 @@ import Upload from './pages/Upload';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 // Composant interne pour la synchronisation
 const AppWithSync = () => {
@@ -43,8 +44,8 @@ const AppWithSync = () => {
         <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
         <Route path="playlists/:playlistId" element={<ProtectedRoute><PlaylistDetail /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        {/* Route 404 - à créer plus tard */}
-        <Route path="*" element={<div className="container mx-auto px-4 py-8"><h1>Page non trouvée</h1></div>} />
+        {/* Route 404 */}
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
