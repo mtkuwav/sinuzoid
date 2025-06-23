@@ -45,7 +45,7 @@ Sinuzoid follows a microservices architecture with the following components:
 3. **Install and start the application**
    ```bash
    # At the project root
-   docker compose build && ./start.sh
+   docker compose build && ./scripts/start.sh
    ```
 
 4. **Access the application**
@@ -57,10 +57,39 @@ Sinuzoid follows a microservices architecture with the following components:
 
 ### Database Setup
 
-The PostgreSQL database will be automatically created. To access it through PgAdmin:
+The PostgreSQL database will be automatically created when starting the services. The database schema is automatically imported from `sinuzoid_database.sql`.
+
+#### Manual Database Setup (if needed)
+
+If you need to manually set up or reset the database:
+
+1. **Import the database schema**
+   ```bash
+   # With Docker Compose running
+   docker compose exec db psql -U postgres -d sinuzoid_db -f /docker-entrypoint-initdb.d/sinuzoid_database.sql
+   
+   # Or from host machine
+   docker compose exec -T db psql -U postgres -d sinuzoid_db < sinuzoid_database.sql
+   ```
+
+2. **Reset the database** (if needed)
+   ```bash
+   # Stop services
+   docker compose down
+   
+   # Remove database volume
+   docker volume rm sinuzoid_postgres_data
+   
+   # Restart services (will recreate the database)
+   docker compose up -d
+   ```
+
+#### Access Database via PgAdmin
+
+To access the database through PgAdmin:
 
 1. Go to http://localhost:8081
-2. Login with the credentials from your `.env` file
+2. Login with the credentials from your `.env` file (default: admin@example.com / adminpassword)
 3. Add a new server with these settings:
    - **Name**: Sinuzoid DB
    - **Host**: db
