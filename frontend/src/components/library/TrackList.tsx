@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiCalendar, FiPlay } from 'react-icons/fi';
+import { FiUser, FiCalendar, FiPlay, FiPause } from 'react-icons/fi';
 import { Track } from '../../hooks/useTracks';
 import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 import { useMusicImages, useMusicUtils } from '../../hooks/useMusicStore';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { TrackMenu } from '../tracks';
 
 interface TrackListProps {
@@ -20,6 +21,7 @@ const TrackItem: React.FC<{
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const { getThumbnailUrl } = useMusicImages();
   const { formatDuration } = useMusicUtils();
+  const { toggleTrack, isTrackPlaying, isCurrentTrack } = useAudioPlayer();
   
   useEffect(() => {
     const loadThumbnail = async () => {
@@ -32,20 +34,38 @@ const TrackItem: React.FC<{
     loadThumbnail();
   }, [track.cover_thumbnail_path, getThumbnailUrl]);
 
+  const handlePlayClick = () => {
+    toggleTrack(track);
+    onTrackPlay?.(track);
+  };
+
+  const isPlaying = isTrackPlaying(track.id);
+  const isCurrent = isCurrentTrack(track.id);
+
   return (
-    <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 group">
+    <div className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 group ${
+      isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+    }`}>
       <div className="grid grid-cols-12 gap-4 items-center">
         {/* Index/Play button */}
         <div className="col-span-1">
           <div className="w-8 h-8 flex items-center justify-center">
-            <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:hidden">
+            <span className={`text-sm group-hover:hidden ${
+              isCurrent 
+                ? 'text-blue-600 dark:text-blue-400 font-medium' 
+                : 'text-gray-500 dark:text-gray-400'
+            }`}>
               {index + 1}
             </span>
             <button
-              onClick={() => onTrackPlay?.(track)}
+              onClick={handlePlayClick}
               className="w-6 h-6 hidden group-hover:flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors duration-200"
             >
-              <FiPlay className="w-3 h-3 ml-0.5" />
+              {isPlaying ? (
+                <FiPause className="w-3 h-3" />
+              ) : (
+                <FiPlay className="w-3 h-3 ml-0.5" />
+              )}
             </button>
           </div>
         </div>
@@ -76,7 +96,11 @@ const TrackItem: React.FC<{
 
           {/* Info */}
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+            <p className={`text-sm font-medium truncate ${
+              isCurrent 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'text-gray-800 dark:text-white'
+            }`}>
               {track.metadata?.title || track.original_filename.replace(/\.[^/.]+$/, "")}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center">

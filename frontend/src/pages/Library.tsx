@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FiAlertCircle, FiLoader, FiRefreshCw, FiMusic } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router';
 import { Track } from '../hooks/useTracks';
+import { Playlist } from '../types/playlist';
 import { useMusicData, useMusicUtils } from '../hooks/useMusicStore';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { useImagePreloader, useImageCleanup } from '../hooks/useImagePreloader';
 import { usePlaylistData } from '../hooks/usePlaylist';
 import { 
@@ -33,10 +35,18 @@ const Library: React.FC = () => {
   } = usePlaylistData();
   
   const { formatFileSize } = useMusicUtils();
+  const { toggleTrack, playAlbum, playPlaylist } = useAudioPlayer();
   
   // Préchargement intelligent des images et cleanup automatique
   useImagePreloader();
   useImageCleanup();
+
+  // Handlers pour les playlists
+  const handlePlaylistPlay = (playlist: Playlist) => {
+    if (playlist.tracks.length > 0) {
+      playPlaylist(playlist, 0);
+    }
+  };
 
   const [viewMode, setViewMode] = useState<'albums' | 'tracks'>('albums');
   const [searchQuery, setSearchQuery] = useState('');
@@ -204,8 +214,11 @@ const Library: React.FC = () => {
   }, [tracks, albums, formatFileSize]);
 
   const handleTrackPlay = (track: Track) => {
-    console.log('Playing track:', track);
-    // TODO: Implement track playing functionality
+    toggleTrack(track);
+  };
+
+  const handleAlbumPlay = (album: { tracks: Track[] }) => {
+    playAlbum(album, 0);
   };
 
   if (error) {
@@ -310,6 +323,7 @@ const Library: React.FC = () => {
               <PlaylistCard
                 key={playlist.id}
                 playlist={playlist}
+                onPlay={handlePlaylistPlay}
               />
             ))}
           </div>
@@ -354,6 +368,7 @@ const Library: React.FC = () => {
                       album={album}
                       formatFileSize={formatFileSize}
                       onTrackPlay={handleTrackPlay}
+                      onAlbumPlay={handleAlbumPlay}
                       index={index}
                       columnsCount={6}
                     />

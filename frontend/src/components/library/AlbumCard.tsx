@@ -10,6 +10,7 @@ interface AlbumCardProps {
   album: Album;
   formatFileSize: (bytes: number) => string;
   onTrackPlay?: (track: Track) => void;
+  onAlbumPlay?: (album: { tracks: Track[] }) => void;
   index?: number;
   columnsCount?: number;
 }
@@ -18,6 +19,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   album,
   formatFileSize,
   onTrackPlay,
+  onAlbumPlay,
   index = 0,
   columnsCount = 6
 }) => {
@@ -127,7 +129,12 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               if (album.tracks.length > 0) {
-                onTrackPlay?.(album.tracks[0]);
+                // Utiliser onAlbumPlay pour jouer tout l'album, sinon fallback sur la première piste
+                if (onAlbumPlay) {
+                  onAlbumPlay(album);
+                } else {
+                  onTrackPlay?.(album.tracks[0]);
+                }
               }
             }}
             className="w-12 h-12 bg-white/90 hover:bg-white text-black rounded-full flex items-center justify-center transition-all duration-200 transform scale-90 hover:scale-100"
@@ -151,7 +158,6 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
           alignLeft={isLeftSide}
           onAlbumDeleted={() => {
             // The parent component (Library) will handle the refresh via the store
-            console.log(`Album ${album.name} deleted`);
           }}
         />
       </div>

@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fi';
 import { usePlaylist, usePlaylistUtils, usePlaylistOperations } from '../hooks/usePlaylist';
 import { useMusicUtils } from '../hooks/useMusicStore';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { Track } from '../hooks/useTracks';
 import { Button } from '../components/ui';
 import { PlaylistModal, DeletePlaylistModal, AddTracksToPlaylistModal } from '../components/playlists';
@@ -24,6 +25,7 @@ const PlaylistDetail: React.FC = () => {
   const { calculatePlaylistStats } = usePlaylistUtils();
   const { formatDuration } = useMusicUtils();
   const { removeTrackFromPlaylist } = usePlaylistOperations();
+  const { playTracks, toggleTrack } = useAudioPlayer();
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -33,20 +35,19 @@ const PlaylistDetail: React.FC = () => {
   const stats = playlist ? calculatePlaylistStats(playlist) : null;
 
   const handleTrackPlay = (track: Track) => {
-    console.log('Playing track:', track);
-    // TODO: Implement track playing functionality
+    toggleTrack(track);
   };
 
   const handlePlayAll = () => {
     if (playlist?.tracks && playlist.tracks.length > 0) {
-      handleTrackPlay(playlist.tracks[0]);
+      playTracks(playlist.tracks, 0);
     }
   };
 
   const handleShuffle = () => {
     if (playlist?.tracks && playlist.tracks.length > 0) {
       const randomIndex = Math.floor(Math.random() * playlist.tracks.length);
-      handleTrackPlay(playlist.tracks[randomIndex]);
+      playTracks(playlist.tracks, randomIndex);
     }
   };
 

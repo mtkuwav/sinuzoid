@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { FiArrowLeft, FiPlay, FiShuffle, FiClock, FiTrash2 } from 'react-icons/fi';
 import { Track } from '../hooks/useTracks';
 import { useMusicData, useMusicImages, useMusicUtils, useMusicDeletion } from '../hooks/useMusicStore';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { Button } from '../components/ui';
 import { TrackMenu, DeleteAlbumModal } from '../components/tracks';
 import LogoIcon from '../assets/logos/logo_sinuzoid-cyan.svg?react';
@@ -14,6 +15,7 @@ const Album: React.FC = () => {
   const { getThumbnailUrl, getCoverUrl } = useMusicImages();
   const { formatDuration } = useMusicUtils();
   const { handleAlbumDeleted } = useMusicDeletion();
+  const { playAlbum, toggleTrack } = useAudioPlayer();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [showDeleteAlbumModal, setShowDeleteAlbumModal] = useState(false);
 
@@ -105,20 +107,19 @@ const Album: React.FC = () => {
   }, [album]);
 
   const handleTrackPlay = (track: Track) => {
-    console.log('Playing track:', track);
-    // TODO: Implement track playing functionality
+    toggleTrack(track);
   };
 
   const handlePlayAll = () => {
     if (album?.tracks.length) {
-      handleTrackPlay(album.tracks[0]);
+      playAlbum(album, 0);
     }
   };
 
   const handleShuffle = () => {
     if (album?.tracks.length) {
       const randomIndex = Math.floor(Math.random() * album.tracks.length);
-      handleTrackPlay(album.tracks[randomIndex]);
+      playAlbum(album, randomIndex);
     }
   };
 

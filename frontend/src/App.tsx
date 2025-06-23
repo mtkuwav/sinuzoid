@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import './App.css'
 
 import { AuthProvider } from './contexts/AuthContext';
+import { AudioProvider } from './contexts/AudioContext';
 import { useBackgroundSync, useNetworkSync } from './hooks/useBackgroundSync';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -52,9 +53,11 @@ const AppWithSync = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppWithSync />
-      </Router>
+      <AudioProvider>
+        <Router>
+          <AppWithSync />
+        </Router>
+      </AudioProvider>
     </AuthProvider>
   );
 }

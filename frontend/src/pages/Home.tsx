@@ -1,5 +1,6 @@
 import React from 'react';
 import SinuzoidLogo from '../assets/logos/logo_sinuzoid-cyan.svg?react';
+import { AudioPlayerTest } from '../components/player';
 
 const Home: React.FC = () => {
   return (
@@ -31,6 +32,11 @@ const Home: React.FC = () => {
               Écoutez des stations personnalisées
             </p>
           </div>
+        </div>
+        
+        {/* Test du lecteur audio */}
+        <div className="mt-12">
+          <AudioPlayerTest />
         </div>
       </div>
     </div>
