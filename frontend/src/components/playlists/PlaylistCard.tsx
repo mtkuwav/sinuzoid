@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { FiMusic, FiMoreVertical, FiPlay, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiMoreVertical, FiEdit, FiTrash2, FiPlay } from 'react-icons/fi';
 import { Playlist } from '../../types/playlist';
 import { usePlaylistUtils } from '../../hooks/usePlaylist';
-import { useMusicImages } from '../../hooks/useMusicStore';
 import { Button } from '../ui';
 import LogoIcon from '../../assets/logos/logo_sinuzoid-cyan.svg?react';
 
@@ -20,23 +19,10 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
   onDelete,
   onPlay
 }) => {
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-  const { calculatePlaylistStats, getPlaylistCoverUrl } = usePlaylistUtils();
-  const { getThumbnailUrl } = useMusicImages();
+  const { calculatePlaylistStats } = usePlaylistUtils();
 
   const stats = calculatePlaylistStats(playlist);
-
-  useEffect(() => {
-    const loadCover = async () => {
-      const coverPath = getPlaylistCoverUrl(playlist);
-      if (coverPath) {
-        const url = await getThumbnailUrl(coverPath);
-        setCoverUrl(url);
-      }
-    };
-    loadCover();
-  }, [playlist, getThumbnailUrl, getPlaylistCoverUrl]);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -91,28 +77,20 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
         className="block bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg dark:hover:shadow-xl transition-all duration-200"
       >
         {/* Cover Image */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 flex items-center justify-center">
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt={playlist.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center">
-                <LogoIcon className="w-12 h-12 mx-auto mb-2 fill-white opacity-50" />
-                <FiMusic className="w-8 h-8 mx-auto text-white opacity-50" />
+        <div className="relative aspect-square overflow-hidden rounded-t-lg">
+          <div className="w-full h-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 dark:from-cyan-500 dark:via-blue-600 dark:to-purple-700 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+            <div className="text-center px-4">
+              <LogoIcon className="w-16 h-16 mx-auto mb-3 fill-white opacity-90 drop-shadow-md" />
+              <div className="text-white opacity-90 text-sm font-medium tracking-wide line-clamp-2 leading-tight">
+                {playlist.name}
               </div>
             </div>
-          )}
-          
-          {/* Play button overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
+            
+            {/* Play button - positioned in bottom right corner */}
             <Button
               variant="primary"
               size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform scale-90 group-hover:scale-100"
+              className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 shadow-lg"
               onClick={handlePlayClick}
             >
               <FiPlay className="w-4 h-4" />
@@ -145,7 +123,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
       <div className="absolute top-4 right-4 z-30">
         <button
           onClick={handleMenuClick}
-          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-black bg-opacity-50 rounded-full"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-opacity-50 rounded-full"
         >
           <FiMoreVertical className="w-4 h-4" />
         </button>

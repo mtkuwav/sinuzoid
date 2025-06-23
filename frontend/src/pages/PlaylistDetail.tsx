@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { 
   FiArrowLeft, 
@@ -8,11 +8,10 @@ import {
   FiEdit,
   FiTrash2,
   FiPlus,
-  FiLoader,
-  FiMusic
+  FiLoader
 } from 'react-icons/fi';
 import { usePlaylist, usePlaylistUtils, usePlaylistOperations } from '../hooks/usePlaylist';
-import { useMusicImages, useMusicUtils } from '../hooks/useMusicStore';
+import { useMusicUtils } from '../hooks/useMusicStore';
 import { Track } from '../hooks/useTracks';
 import { Button } from '../components/ui';
 import { PlaylistModal, DeletePlaylistModal, AddTracksToPlaylistModal } from '../components/playlists';
@@ -23,29 +22,14 @@ const PlaylistDetail: React.FC = () => {
   const { playlistId } = useParams<{ playlistId: string }>();
   const navigate = useNavigate();
   const { playlist, isLoading, refetch } = usePlaylist(playlistId);
-  const { calculatePlaylistStats, getPlaylistCoverUrl } = usePlaylistUtils();
+  const { calculatePlaylistStats } = usePlaylistUtils();
   const { formatDuration } = useMusicUtils();
-  const { getThumbnailUrl } = useMusicImages();
   const { removeTrackFromPlaylist } = usePlaylistOperations();
 
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddTracksModal, setShowAddTracksModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-
-  useEffect(() => {
-    const loadCover = async () => {
-      if (playlist) {
-        const coverPath = getPlaylistCoverUrl(playlist);
-        if (coverPath) {
-          const url = await getThumbnailUrl(coverPath);
-          setCoverUrl(url);
-        }
-      }
-    };
-    loadCover();
-  }, [playlist, getThumbnailUrl, getPlaylistCoverUrl]);
 
   const stats = playlist ? calculatePlaylistStats(playlist) : null;
 
@@ -163,19 +147,13 @@ const PlaylistDetail: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 mb-8">
           {/* Playlist cover */}
           <div className="flex-shrink-0">
-            <div className="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-lg shadow-lg mx-auto md:mx-0 flex items-center justify-center overflow-hidden">
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt={playlist.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-center">
-                  <LogoIcon className="w-16 h-16 mx-auto mb-4 fill-white opacity-50" />
-                  <FiMusic className="w-12 h-12 mx-auto text-white opacity-50" />
+            <div className="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 dark:from-cyan-500 dark:via-blue-600 dark:to-purple-700 rounded-lg shadow-lg mx-auto md:mx-0 flex items-center justify-center overflow-hidden">
+              <div className="text-center px-4">
+                <LogoIcon className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 fill-white opacity-90 drop-shadow-md" />
+                <div className="text-white opacity-90 text-lg md:text-xl font-medium tracking-wide line-clamp-3 leading-tight">
+                  {playlist.name}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -291,7 +269,7 @@ const PlaylistDetail: React.FC = () => {
           {/* Tracks list */}
           {!playlist.tracks || playlist.tracks.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <FiMusic className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <LogoIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4 fill-current" />
               <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
                 Aucun titre dans cette playlist
               </h3>

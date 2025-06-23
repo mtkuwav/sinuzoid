@@ -135,14 +135,14 @@ const Playlists: React.FC = () => {
           </div>
         </div>
       ) : (
-        <>
+        <div className="pb-20">
           {/* Stats */}
           <div className="mb-6 text-sm text-gray-600 dark:text-gray-400">
             {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
           </div>
 
           {/* Playlists Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
             {playlists.map((playlist) => (
               <PlaylistCard
                 key={playlist.id}
@@ -153,7 +153,7 @@ const Playlists: React.FC = () => {
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {/* Modals */}
