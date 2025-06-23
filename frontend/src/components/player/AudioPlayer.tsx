@@ -20,7 +20,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // L'audio element est géré par le hook useAudioElement dans le contexte
   }, []);
 
-  if (!currentTrack && (variant === 'mini' || variant === 'headerCompact' || variant === 'mobile')) {
+  if (!currentTrack && (variant === 'mini' || variant === 'mobile')) {
     return null;
   }
 
@@ -64,8 +64,27 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   }
 
   if (variant === 'headerCompact') {
+    if (!currentTrack) {
+      // Placeholder quand aucune musique ne joue
+      return (
+        <div className={`flex flex-col items-center justify-center space-y-1 min-w-0 w-full max-w-2xl ${className}`}>
+          <div className="flex items-center space-x-2 text-gray-400 dark:text-gray-500">
+            <div className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.814L4.73 13.846a1 1 0 01-.73-.814v-2.064a1 1 0 01.73-.814l3.653-2.968A1 1 0 019 8v4.5l6-4.5v9l-6-4.5V4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium">Pas de lecture en cours</span>
+          </div>
+          <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+            <div className="h-full w-0 bg-blue-500 rounded-full"></div>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className={`flex flex-col items-center space-y-2 min-w-0 max-w-md ${className}`}>
+      <div className={`flex flex-col items-center space-y-2 min-w-0 w-full max-w-2xl ${className}`}>
         <div className="flex items-center space-x-4 w-full">
           <PlayerInfo variant="compact" className="flex-1 min-w-0" />
           <PlayerControls variant="compact" className="flex-shrink-0" />

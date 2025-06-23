@@ -68,14 +68,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* Logo */}
           <Logo size="md" variant="both" linkTo="/" />
 
-          {/* Desktop: AudioPlayer au centre */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <AudioPlayer variant="headerCompact" />
+          {/* Desktop: Centered AudioPlayer */}
+          <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto">
+            <AudioPlayer variant="headerCompact" className="w-full" />
           </div>
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-6">
-            {/* Bouton de recherche - visible sur desktop */}
+            {/* Search button, visible on desktop */}
             <Button 
               variant="icon"
               size="md"
