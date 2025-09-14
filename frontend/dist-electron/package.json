@@ -1,0 +1,5 @@
+{
+  "name": "sinuzoid-electron",
+  "main": "main.js",
+  "type": "commonjs"
+}
